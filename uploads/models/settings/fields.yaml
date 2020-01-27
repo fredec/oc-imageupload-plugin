@@ -1,0 +1,72 @@
+tabs:
+    fields:
+        name_arq:
+            label: 'Manter nome original'
+            span: left
+            type: switch
+            tab: Configurações
+        compression:
+            label: 'Qualidade de compressão (Padrão: 80)'
+            span: auto
+            type: number
+            tab: Configurações
+        converter_jpg:
+            label: 'Converter imagens para JPG'
+            span: left
+            type: switch
+            tab: Configurações
+        tamanho_max:
+            label: 'Tamanho máximo da imagem (Padrão: 3000)'
+            span: auto
+            type: number
+            tab: Configurações
+        posicao_horizonal:
+            label: 'Posição horizontal'
+            options:
+                center: Centro
+                left: Esquerda
+                right: Direita
+            showSearch: true
+            span: auto
+            type: dropdown
+            tab: 'Marca D''água'
+        imagem_marca:
+            label: Imagem
+            mode: image
+            useCaption: true
+            thumbOptions:
+                mode: crop
+                extension: auto
+            span: right
+            type: fileupload
+            tab: 'Marca D''água'
+        posicao_vertical:
+            label: 'Posição Vertical'
+            options:
+                center: Centro
+                top: Topo
+                bottom: Abaixo
+            showSearch: true
+            span: auto
+            type: dropdown
+            tab: 'Marca D''água'
+        opacity_marca:
+            label: 'Opacidade (padrão 50, máximo 100)'
+            span: left
+            type: number
+            tab: 'Marca D''água'
+        proporcao_marca:
+            label: 'Proporção da marca (Padrão 50, máximo 100)'
+            span: left
+            type: number
+            tab: 'Marca D''água'
+        espacamento_marca:
+            label: 'Espacamento Marca no canto (Padrão 20)'
+            span: left
+            type: number
+            tab: 'Marca D''água'
+        api_tiny:
+            label: 'Key Tinypng'
+            span: auto
+            type: text
+            tab: 'API TinyPng'

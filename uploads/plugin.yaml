@@ -1,0 +1,10 @@
+plugin:
+    name: 'Otimizar imagens uploads'
+    description: 'Otimizar uploads das fotos no backend interno.'
+    author: Diveramkt
+    icon: oc-icon-upload
+    homepage: ''
+permissions:
+    manage_upload:
+        tab: 'diveramkt.whatsappfloat::lang.plugin.name'
+        label: 'Gerenciar Uploads imagens'
