@@ -1,6 +1,6 @@
 <?php return [
     'plugin' => [
-        'name' => 'WhatsappFloat',
+        'name' => 'Uploads',
         'description' => ''
     ]
 ];

@@ -1,88 +1,113 @@
-<?php namespace Cydrick\KidlatArchive\FormWidgets;
+<?php 
+// namespace Cydrick\KidlatArchive\FormWidgets;
+namespace Diveramkt\Uploads\FormWidgets;
+// https://octobercms.com/forum/post/how-to-extend-systemmodelsfile
 
 use Backend\FormWidgets\FileUpload as FileUploadBase; use Str; use Input; use Validator;
-//use System\Models\File; use System\Classes\SystemException; //use Backend\Classes\FormField; //use Backend\Classes\FormWidgetBase; use October\Rain\Support\ValidationException; use Exception;
+
+// use System\Models\File; use System\Classes\SystemException; 
+// use Backend\Classes\FormField; 
+// use Backend\Classes\FormWidgetBase; use October\Rain\Support\ValidationException; use Exception;
 
 class FileUpload extends FileUploadBase {
 
-    public function onUpload()
-    {
+    public $teste2='';
+    public $teste_var = true;
 
-        return;
-        
-        try {
-            if (!Input::hasFile('file_data')) {
-                throw new ApplicationException('File missing from request');
-            }
+    // public function teste(){
+    //     return 'teste';
+    // }
 
-            $fileModel = $this->getRelationModel();
-            $uploadedFile = Input::file('file_data');
+    // public function onUpload()
+    // {
 
-            $validationRules = ['max:'.$fileModel::getMaxFilesize()];
-            if ($fileTypes = $this->getAcceptedFileTypes()) {
-                $validationRules[] = 'extensions:'.$fileTypes;
-            }
+    //     // return;
+    //     // $texto='teste subinterno';
+    //     // $arquivo = "meu_arquivo.txt";
+    //     // $fp = fopen($arquivo, "w+");
+    //     // fwrite($fp, $texto);
+    //     // fclose($fp);
 
-            if ($this->mimeTypes) {
-                $validationRules[] = 'mimes:'.$this->mimeTypes;
-            }
+    //     try {
 
-            $validation = Validator::make(
-                ['file_data' => $uploadedFile],
-                ['file_data' => $validationRules]
-            );
+    //         if (!Input::hasFile('file_data')) {
+    //             throw new ApplicationException('File missing from request');
+    //         }
 
-            if ($validation->fails()) {
-                throw new ValidationException($validation);
-            }
+    //         $fileModel = $this->getRelationModel();
+    //         $uploadedFile = Input::file('file_data');
 
-            if (!$uploadedFile->isValid()) {
-                throw new ApplicationException('File is not valid');
-            }
+    //         $validationRules = ['max:'.$fileModel::getMaxFilesize()];
+    //         if ($fileTypes = $this->getAcceptedFileTypes()) {
+    //             $validationRules[] = 'extensions:'.$fileTypes;
+    //         }
 
-            $fileRelation = $this->getRelationObject();
+    //         if ($this->mimeTypes) {
+    //             $validationRules[] = 'mimes:'.$this->mimeTypes;
+    //         }
 
-            $file = $fileModel;
-            $file->data = $uploadedFile;
-            $file->is_public = $fileRelation->isPublic();
-            $file->save();
+    //         $validation = Validator::make(
+    //             ['file_data' => $uploadedFile],
+    //             ['file_data' => $validationRules]
+    //         );
 
-            /**
-             * Attach directly to the parent model if it exists and attachOnUpload has been set to true
-             * else attach via deferred binding
-             */
-            $parent = $fileRelation->getParent();
-            if ($this->attachOnUpload && $parent && $parent->exists) {
-                $fileRelation->add($file);
-            }
-            else {
-                $fileRelation->add($file, $this->sessionKey);
-            }
+    //         if ($validation->fails()) {
+    //             throw new ValidationException($validation);
+    //         }
 
-            $file = $this->decorateFileAttributes($file);
+    //         if (!$uploadedFile->isValid()) {
+    //             throw new ApplicationException('File is not valid');
+    //         }
 
-            // $vals=array() $file;
-            // $texto='testando upload';
-            // $arquivo = "nome_arquivo.txt";
-            // $fp = fopen($arquivo, "w+");
-            // fwrite($fp, $file->pathUrl);
-            // fclose($fp);
+    //         $fileRelation = $this->getRelationObject();
 
-            $result = [
-                'id' => $file->id,
-                'thumb' => $file->thumbUrl,
-                'path' => $file->pathUrl
-            ];
+    //         $file = $fileModel;
+    //         $file->data = $uploadedFile;
+    //         $file->is_public = $fileRelation->isPublic();
+    //         $file->save();
+
+    //         /**
+    //          * Attach directly to the parent model if it exists and attachOnUpload has been set to true
+    //          * else attach via deferred binding
+    //          */
+    //         $parent = $fileRelation->getParent();
+    //         if ($this->attachOnUpload && $parent && $parent->exists) {
+    //             $fileRelation->add($file);
+    //         }
+    //         else {
+    //             $fileRelation->add($file, $this->sessionKey);
+    //         }
+
+    //         $file = $this->decorateFileAttributes($file);
+
+    //         // $vals=array() $file;
+    //         // $texto='testando upload';
+    //         // $arquivo = "nome_arquivo.txt";
+    //         // $fp = fopen($arquivo, "w+");
+    //         // fwrite($fp, $file->pathUrl);
+    //         // fclose($fp);
+
+    //         $result = [
+    //             'id' => $file->id,
+    //             'thumb' => $file->thumbUrl,
+    //             'path' => $file->pathUrl
+    //         ];
 
 
-            $response = Response::make($result, 200);
-        }
-        catch (Exception $ex) {
-            $response = Response::make($ex->getMessage(), 400);
-        }
+    //         $response = Response::make($result, 200);
+    //     }
+    //     catch (Exception $ex) {
+    //         $response = Response::make($ex->getMessage(), 400);
+    //     }
 
-        return $response;
-    }
+    //     return $response;
+    // }
+
+
+
+
+
+
 
 // public function getRelatedModel(){
 //     list($model,$attribute) = $this->resolveModelAttribute($this->valueFrom);

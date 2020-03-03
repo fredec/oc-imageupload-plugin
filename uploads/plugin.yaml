@@ -6,5 +6,11 @@ plugin:
     homepage: ''
 permissions:
     manage_upload:
-        tab: 'diveramkt.whatsappfloat::lang.plugin.name'
+        tab: 'diveramkt.uploads::lang.plugin.name'
         label: 'Gerenciar Uploads imagens'
+    delete_media:
+        tab: 'diveramkt.uploads::lang.plugin.name'
+        label: 'Deletar imagens em Mídias'
+    readOnly_media:
+        tab: 'diveramkt.uploads::lang.plugin.name'
+        label: 'Apenas acessar as imagens em Mídias'
