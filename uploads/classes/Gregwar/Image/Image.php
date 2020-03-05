@@ -131,7 +131,8 @@ class Image
     public function getCacheSystem()
     {
         if (is_null($this->cache)) {
-            $this->cache = new \Gregwar\Cache\Cache();
+            $this->cache = new \Diveramkt\Uploads\Classes\Gregwar\Cache\Cache();
+            // $this->cache = new \Gregwar\Cache\Cache();
             $this->cache->setCacheDirectory($this->cacheDir);
         }
 
