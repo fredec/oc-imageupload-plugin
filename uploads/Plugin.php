@@ -97,10 +97,10 @@ class Plugin extends PluginBase
 
 
 			$permissoes=(array) $user->permissions;
-			if($user->role_id == 2 or (isset($permissoes['delete_media']) && $permissoes['delete_media'] == 1) ) $widget->addDynamicProperty('deletar', true);
+			if($user->role_id == 2 or (isset($permissoes['Uploads.delete_media']) && $permissoes['Uploads.delete_media'] == 1) ) $widget->addDynamicProperty('deletar', true);
 			else $widget->addDynamicProperty('deletar', false);
 
-			if(isset($permissoes['readOnly_media']) && $permissoes['readOnly_media'] == 1) $widget->readOnly=true;
+			if(isset($permissoes['Uploads.readOnly_media']) && $permissoes['Uploads.readOnly_media'] == 1) $widget->readOnly=true;
 			$widget->addViewPath(plugins_path().'/diveramkt/uploads/backend/widgets/mediamanager/partials/');
 
 		});
