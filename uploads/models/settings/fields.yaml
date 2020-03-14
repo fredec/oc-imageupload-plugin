@@ -5,11 +5,6 @@ tabs:
             span: left
             type: switch
             tab: Configurações
-        compression:
-            label: 'Qualidade de compressão (Padrão: 80)'
-            span: auto
-            type: number
-            tab: Configurações
         converter_jpg:
             label: 'Converter imagens para JPG'
             span: left
@@ -20,6 +15,21 @@ tabs:
             span: auto
             type: number
             tab: Configurações
+        compression:
+            label: 'Qualidade de compressão (Padrão: 80)'
+            span: auto
+            type: number
+            tab: Compressão
+        compression_small_size:
+            label: 'Size imagens pequenas (Padrão: 50 Kbs)'
+            span: left
+            type: number
+            tab: Compressão
+        compression_small:
+            label: 'Compressão para imagens pequenas (Padrão: 20)'
+            span: right
+            type: number
+            tab: Compressão
         posicao_horizonal:
             label: 'Posição horizontal'
             options:

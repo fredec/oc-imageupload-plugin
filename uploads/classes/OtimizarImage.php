@@ -18,7 +18,11 @@ class OtimizarImage {
 	static public $converter_jpg=false;
 	static public $name_arq=false;
 	static public $api_tiny=false;
+	static public $rename=true;
 	static public $imagem_marca=false;
+
+	static public $compression_small_size=50000;
+	static public $compression_small=20;
 
 	function __construct($config=false)
 	{
@@ -29,19 +33,23 @@ class OtimizarImage {
 		if(!isset($dados->value)) $dados=new stdclass();
 		else $dados=json_decode($dados->value);
 
-		// $texto=json_encode($settins_instance->imagem_marca);
-		// $arquivo = "meu_arquivo.txt";
-		// $fp = fopen($arquivo, "w+");
-		// fwrite($fp, $texto);
-		// fclose($fp);
-
 		if(!isset($dados->name_arq)) $dados->name_arq=false;
 		if(!isset($dados->converter_jpg)) $dados->converter_jpg=false;
 		if(!isset($dados->tamanho_max) || !$dados->tamanho_max || $dados->tamanho_max == 0 || str_replace(' ', '', $dados->tamanho_max) == '') $dados->tamanho_max=3000;
 		if(!isset($dados->compression) || !$dados->compression || $dados->compression == 0 || str_replace(' ', '', $dados->compression) == '') $dados->compression=80;
 
 		if(isset($config['compression'])) self::$compression=$config['compression'];
-		elseif(isset($dados->compression)) self::$compression=$dados->compression;
+		else{
+			if(isset($config['compression'])) self::$compression=$config['compression'];
+			elseif(isset($dados->compression)) self::$compression=$dados->compression;
+		}
+
+		if(isset($config['compression_small_size'])) self::$compression_small_size=$config['compression_small_size'];
+		elseif(isset($dados->compression_small_size)) self::$compression_small_size=$dados->compression_small_size;
+
+		if(isset($config['compression_small'])) self::$compression_small=$config['compression_small'];
+		elseif(isset($dados->compression_small)) self::$compression_small=$dados->compression_small;
+
 
 		if(isset($config['name_arq'])) self::$name_arq=$config['name_arq'];
 		elseif(isset($dados->name_arq)) self::$name_arq=$dados->name_arq;
@@ -58,6 +66,9 @@ class OtimizarImage {
 		// if(isset($config['imagem_marca'])) self::$imagem_marca=$config['imagem_marca'];
 		// else self::$imagem_marca=$settins_instance->imagem_marca;
 		if($settins_instance->imagem_marca) self::$imagem_marca=$settins_instance->imagem_marca;
+
+		if(isset($config['rename'])) self::$rename=$config['rename'];
+		elseif(isset($dados->rename)) self::$rename=$dados->rename;
 	}
 
 	// compress_images($caminho,$destino,90);
@@ -74,20 +85,63 @@ class OtimizarImage {
 		if(!isset($info['mime']) && $info['mime'] != '') return;
 		$antigo=filesize($source);
 
-		if ($info['mime'] == 'image/jpeg') 
+		if ($info['mime'] == 'image/jpeg'){
 			$image = imagecreatefromjpeg($source);
-		elseif ($info['mime'] == 'image/gif') 
+			if(!isset($image)) return;
+			imagejpeg($image, $destination, $quality);
+		}elseif ($info['mime'] == 'image/gif') {
 			$image = imagecreatefromgif($source);
-		elseif ($info['mime'] == 'image/png') 
+			if(!isset($image)) return;
+			// imagealphablending($image, true);
+			// imagesavealpha($image, true);
+			// imagegif($image, $destination, $quality);
+			imagegif($image, $destination);
+		}elseif ($info['mime'] == 'image/png') {
+			$quality=($quality/10); $quality=round($quality); $quality=(10-($quality));
 			$image = imagecreatefrompng($source);
+			if(!isset($image)) return;
+			imagealphablending($image, true);
+			imagesavealpha($image, true);
+			// $quality=($quality/10); $quality=round($quality); $quality=(10-($quality));
+			imagepng($image, $destination, $quality);
+		}
 
-		if(!isset($image)) return;
-		imagejpeg($image, $destination, $quality);
 		$novo=filesize($destination);
 		$tamanho['antigo']=$antigo;
 		$tamanho['novo']=$novo;
     // return $destination;
 		return $tamanho;
+	}
+
+	static public function compress_png($path_to_png_file, $max_quality = 80)
+	{
+
+		// https://pngquant.org/php.html
+		if (!file_exists($path_to_png_file)) {
+			// throw new Exception("File does not exist: $path_to_png_file");
+			return;
+		}
+
+
+    // guarantee that quality won't be worse than that.
+		$min_quality = 10;
+
+    // '-' makes it use stdout, required to save to $compressed_png_content variable
+    // '<' makes it read from the given file path
+    // escapeshellarg() makes this safe to use with any path
+		$compressed_png_content = shell_exec("pngquant --quality=$min_quality-$max_quality - < ".escapeshellarg(    $path_to_png_file));
+
+		// if (!$compressed_png_content) {
+			// throw new Exception("Conversion to compressed PNG failed. Is pngquant 1.8+ installed on the server?");
+		// }
+
+		// $arquivo = "meu_arquivo.txt";
+		// $fp = fopen($arquivo, "w+");
+		// fwrite($fp, $compressed_png_content);
+		// fclose($fp);
+
+		if ($compressed_png_content) file_put_contents($path_to_png_file, $compressed_png_content);
+		// return $compressed_png_content;
 	}
 
 	static public function otimizar($imagem=false, $local=false){
@@ -98,19 +152,31 @@ class OtimizarImage {
 		$ext=explode('.', $imagem); $ext=end($ext);
 		$ext_original=$ext;
 
-		if($ext == 'jpeg' || self::$converter_jpg) $ext='jpg';
+		if(self::$converter_jpg) $ext='jpg';
+		// if($ext == 'jpeg' || self::$converter_jpg) $ext='jpg';
 
 		$caminho=str_replace($base,'',$imagem);
 		if(!exif_imagetype($caminho)) return false;
 		$caminho_novo=str_replace('.'.$ext_original,'.'.$ext,$caminho);
 
 		// ///////////////////////////////////////
-		if($local == 'midias'){
+		// if($local == 'midias'){
+		if(self::$rename){
+			$exp=explode('/', $caminho); $name_arq_original=explode('.', end($exp)); $name_arq_original=$name_arq_original[0];
 			$caminho_rename=str_replace('.'.$ext_original,md5(uniqid(mt_rand())).'.'.$ext_original,$caminho);
+			// $caminho_rename=str_replace($name_arq_original, str_slug($name_arq_original,'-').'-'.md5(uniqid(mt_rand())), $caminho);
 			rename($caminho, $caminho_rename);
 			$caminho=$caminho_rename;
 		}
 		// ///////////////////////////////////////
+
+		// $arquivo = "meu_arquivo.txt";
+		// $fp = fopen($arquivo, "w+");
+		// fwrite($fp, json_encode(filesize($caminho)));
+		// fclose($fp);
+
+		$filesize=filesize($caminho);
+		if($filesize <= self::$compression_small_size) self::$compression=self::$compression_small;
 
 		$image=new Image($caminho);
 		
@@ -118,12 +184,13 @@ class OtimizarImage {
 		$size = getimagesize($caminho);
 		if($size[0] > self::$tamanho_max && $size[0] > $size[1]) $image->resize(self::$tamanho_max,false,'transparent');
 		elseif($size[1] > self::$tamanho_max && $size[1] > $size[0]) $image->resize(false,self::$tamanho_max,'transparent');
+		// else $image->resize($size[0],false,'transparent');
 		// RESIZE IMAGE TAMANHO MÁXIMO
 
 
 			// //////////VERIFICAR SE EXITE IMAGE COM MESMO NOME E CRIAR UM NOME COM UM ID
 		$texto='';
-		if((!self::$name_arq || $ext != $ext_original) && $local == 'midias'){
+		if((!self::$name_arq || $ext != $ext_original) && $local == 'midias' && self::$rename){
 
 			$arq_=explode('/', $caminho_novo);
 			
@@ -149,38 +216,25 @@ class OtimizarImage {
 		// MediaLibrary::instance()->moveFile( $filePath_local_new, $newPath );
 			// //////////VERIFICAR SE EXITE IMAGE COM MESMO NOME E CRIAR UM NOME COM UM ID
 
-
-		// if(isset($name)){
-
-		// // $texto=serialize($size);
-		// // $texto=$caminho_novo;
-		// // $texto=self::$compression;
-		// // $texto=$name;
-		// $texto=$caminho_novo;
-		// // $texto=$caminho;
-		// $arquivo = "meu_arquivo.txt";
-		// $fp = fopen($arquivo, "w+");
-		// fwrite($fp, $texto);
-		// fclose($fp);
-		// }
-
-
-
 		// SALVANDO IMAGES
 		$image->save($caminho_novo,$ext,self::$compression);
 		// SALVANDO IMAGES
 
+		// if($ext == 'jpg' && self::$compression < 100) self::compress_images($caminho_novo,$caminho_novo,self::$compression);
+
 		// //////////////////COMPRESSION NAS PNG
-		if($ext == 'png') self::compress_images($caminho_novo,$caminho_novo,self::$compression);
+		// if($ext == 'png' && self::$compression < 100) self::compress_images($caminho_novo,$caminho_novo,self::$compression);
+		// if($ext == 'png' && self::$compression < 100) self::compress_png($caminho_novo,self::$compression);
 		// //////////////////COMPRESSION NAS PNG
 
-		if($local == 'midias' && file_exists($caminho)) unlink($caminho);
-		else if($ext != $ext_original && file_exists($caminho)) unlink($caminho);
+		// return;
+		if($local == 'midias' && file_exists($caminho) && $caminho != $caminho_novo) unlink($caminho);
+		else if($ext != $ext_original && file_exists($caminho) && $caminho != $caminho_novo) unlink($caminho);
 
 		// if(self::$imagem_marca) $image=self::marca_dagua($image);
 
 		// ///////PASSAR IMAGEM NO TINYPNG PARA OTIMIZAR
-		if(isset(self::$api_tiny) && str_replace(' ','',self::$api_tiny) != '' && self::$api_tiny){
+		if(isset(self::$api_tiny) && str_replace(' ','',self::$api_tiny) != '' && self::$api_tiny && $ext == 'png'){
 			$informacoes=Informacoes::where('id',1)->first();
 			if(!isset($informacoes['id'])){
 				Informacoes::insert( ['mes_tinypng' => date('mY'), 'count_tinypng' => 0] );

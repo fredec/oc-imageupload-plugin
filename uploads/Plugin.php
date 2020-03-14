@@ -97,20 +97,44 @@ class Plugin extends PluginBase
 
 
 			$permissoes=(array) $user->permissions;
-			if($user->role_id == 2 or (isset($permissoes['Uploads.delete_media']) && $permissoes['Uploads.delete_media'] == 1) ) $widget->addDynamicProperty('deletar', true);
+			if($user->role_id == 2 or (isset($permissoes['delete_media']) && $permissoes['delete_media'] == 1) ) $widget->addDynamicProperty('deletar', true);
 			else $widget->addDynamicProperty('deletar', false);
 
-			if(isset($permissoes['Uploads.readOnly_media']) && $permissoes['Uploads.readOnly_media'] == 1) $widget->readOnly=true;
+			if(isset($permissoes['readOnly_media']) && $permissoes['readOnly_media'] == 1) $widget->readOnly=true;
 			$widget->addViewPath(plugins_path().'/diveramkt/uploads/backend/widgets/mediamanager/partials/');
 
 		});
 		// //////////////GERENCIAMENTO NAS IMAGENS E ARQUIVOS NO MEDIA
 
+		// $model->bindEvent('model.beforeCreate', function () use (\System\Models\File $model) {
+		// 	if (!$model->isValid()) {
+		// 		throw new \Exception("Invalid Model!");
+		// 	}
+		// });
+
 		\System\Models\File::extend(function($model) {
 
+
+			// return;
+			// return;
 			$model->bindEvent('model.beforeCreate', function() use ($model) {
-				
+
+				// return;
+			// $model->bindEvent('model.afterUpdate', function($veri=false) use ($model) {
+			// $model->bindEvent('model.beforeUpdate', function($veri) use ($model) {
+
+			// $model->bindEvent('model.afterUpdate', function($veri) use ($model) {
+				// if (!$model->isValid()) {
+				// 	throw new \Exception("Invalid Model!");
+				// }
+
+				// // $texto=$arquivo;
+				// return;
+				if(!exif_imagetype($model->path) || $model->extension == 'ico') return;
+				if($model->file_size <= '10000') $config['compression']=100;
+
 				$config['name_arq']=true;
+				$config['rename']=false;
 				$image=new OtimizarImage($config);
 
 				$retorno=$image->otimizar($model->path,'system_files');
@@ -127,10 +151,19 @@ class Plugin extends PluginBase
 			});
 
 			$model->bindEvent('model.afterCreate', function() use ($model) {
+				if(!exif_imagetype($model->path) || $model->extension == 'ico') return;
+				// return;
+
+				// return;
+				// if (!$model->isValid()) {
+				// 	throw new \Exception("Invalid Model!");
+				// }
 
 				$base = 'http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . str_replace('//', '/', dirname($_SERVER['SCRIPT_NAME']) . '/');
 				$base=str_replace('\/','/',$base);
 				$texto=filesize(str_replace($base,'',$model->path));
+
+				// $veri = Db::table('system_files')->where('file_name',$model->file_name)->where('disk_name',$model->disk_name)->first();
 
 				Db::table('system_files')
 				->where('id', $model->id)
@@ -143,16 +176,15 @@ class Plugin extends PluginBase
 		});
 
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
+			$base='storage/app/media';
+			$config=array();
+			if(strpos("[".$filePath."]", "uploaded-files/")){
+				$config['converter_jpg']=false;
+				$config['rename']=false;
+			}
 
-			// $texto=json_encode($filePath);
-			// $texto=$arquivo;
-			// $arquivo = "meu_arquivo.txt";
-			// $fp = fopen($arquivo, "w+");
-			// fwrite($fp, $texto);
-			// fclose($fp);
-
-			$image=new OtimizarImage();
-			$arquivo=str_replace('//','/','storage/app/media'.$filePath);
+			$image=new OtimizarImage($config);
+			$arquivo=str_replace('//','/',$base.$filePath);
 			$retorno=$image->otimizar($arquivo,'midias');
 
 		} );

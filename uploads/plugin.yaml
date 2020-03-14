@@ -5,12 +5,12 @@ plugin:
     icon: oc-icon-upload
     homepage: ''
 permissions:
-    Uploads.manage_upload:
+    manage_upload:
         tab: 'diveramkt.uploads::lang.plugin.name'
         label: 'Gerenciar Uploads imagens'
-    Uploads.delete_media:
+    delete_media:
         tab: 'diveramkt.uploads::lang.plugin.name'
         label: 'Deletar imagens em Mídias'
-    Uploads.readOnly_media:
+    readOnly_media:
         tab: 'diveramkt.uploads::lang.plugin.name'
         label: 'Apenas acessar as imagens em Mídias'
