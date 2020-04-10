@@ -33,10 +33,10 @@ class OtimizarImage {
 		if(!isset($dados->value)) $dados=new stdclass();
 		else $dados=json_decode($dados->value);
 
-		if(!isset($dados->name_arq)) $dados->name_arq=false;
-		if(!isset($dados->converter_jpg)) $dados->converter_jpg=false;
-		if(!isset($dados->tamanho_max) || !$dados->tamanho_max || $dados->tamanho_max == 0 || str_replace(' ', '', $dados->tamanho_max) == '') $dados->tamanho_max=3000;
-		if(!isset($dados->compression) || !$dados->compression || $dados->compression == 0 || str_replace(' ', '', $dados->compression) == '') $dados->compression=80;
+		// if(!isset($dados->name_arq)) $dados->name_arq=false;
+		// if(!isset($dados->converter_jpg)) $dados->converter_jpg=false;
+		// if(!isset($dados->tamanho_max) || !$dados->tamanho_max || $dados->tamanho_max == 0 || str_replace(' ', '', $dados->tamanho_max) == '') $dados->tamanho_max=3000;
+		// if(!isset($dados->compression) || !$dados->compression || $dados->compression == 0 || str_replace(' ', '', $dados->compression) == '') $dados->compression=80;
 
 		if(isset($config['compression'])) self::$compression=$config['compression'];
 		else{
@@ -156,7 +156,7 @@ class OtimizarImage {
 		// if($ext == 'jpeg' || self::$converter_jpg) $ext='jpg';
 
 		$caminho=str_replace($base,'',$imagem);
-		if(!exif_imagetype($caminho)) return false;
+		if(!strpos("[".$caminho."]", ".") || !file_exists($caminho) || (file_exists($caminho) && !exif_imagetype($caminho))) return false;
 		$caminho_novo=str_replace('.'.$ext_original,'.'.$ext,$caminho);
 
 		// ///////////////////////////////////////
@@ -263,7 +263,8 @@ class OtimizarImage {
 
 		$retorno['imagem']=$caminho_novo;
 		$retorno['ext']=$ext;
-		$retorno['filesize']=filesize($caminho_novo);
+		if(file_exists($caminho_novo)) $retorno['filesize']=filesize($caminho_novo);
+		else $retorno['filesize']='';
 		$retorno['mime_type']=mime_content_type($caminho_novo);
 		return $retorno;
 	}

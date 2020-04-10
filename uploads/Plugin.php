@@ -130,7 +130,9 @@ class Plugin extends PluginBase
 
 				// // $texto=$arquivo;
 				// return;
-				if(!exif_imagetype($model->path) || $model->extension == 'ico') return;
+				if($model->extension == 'ico' || $model->extension == 'json') return;
+				// if(!exif_imagetype($model->path)) return;
+				if(!strpos("[".$model->path."]", ".")  || !exif_imagetype($model->path)) return;
 				if($model->file_size <= '10000') $config['compression']=100;
 
 				$config['name_arq']=true;
@@ -151,8 +153,10 @@ class Plugin extends PluginBase
 			});
 
 			$model->bindEvent('model.afterCreate', function() use ($model) {
-				if(!exif_imagetype($model->path) || $model->extension == 'ico') return;
 				// return;
+				if($model->extension == 'ico' || $model->extension == 'json') return;
+				// if(!exif_imagetype($model->path)) return;
+				if(!strpos("[".$model->path."]", ".") || !exif_imagetype($model->path)) return;
 
 				// return;
 				// if (!$model->isValid()) {
@@ -161,22 +165,29 @@ class Plugin extends PluginBase
 
 				$base = 'http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . str_replace('//', '/', dirname($_SERVER['SCRIPT_NAME']) . '/');
 				$base=str_replace('\/','/',$base);
-				$texto=filesize(str_replace($base,'',$model->path));
+				if(file_exists(str_replace($base,'',$model->path))){
+					// $texto=filesize(str_replace($base,'',$model->path));
 
 				// $veri = Db::table('system_files')->where('file_name',$model->file_name)->where('disk_name',$model->disk_name)->first();
 
-				Db::table('system_files')
-				->where('id', $model->id)
-				->update([
-					'file_size' => filesize(str_replace($base,'',$model->path)),
-				]);
+					Db::table('system_files')
+					->where('id', $model->id)
+					->update([
+						'file_size' => filesize(str_replace($base,'',$model->path)),
+					]);
+				}
 
 			});
 
 		});
 
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
+			$ext=explode('.', $filePath); $ext=end($ext);
+			if($ext == 'ico' || $ext == 'json') return;
 			$base='storage/app/media';
+			$arquivo=str_replace('//','/',$base.$filePath);
+			if(!exif_imagetype($arquivo)) return;
+
 			$config=array();
 			if(strpos("[".$filePath."]", "uploaded-files/")){
 				$config['converter_jpg']=false;
@@ -184,7 +195,6 @@ class Plugin extends PluginBase
 			}
 
 			$image=new OtimizarImage($config);
-			$arquivo=str_replace('//','/',$base.$filePath);
 			$retorno=$image->otimizar($arquivo,'midias');
 
 		} );
