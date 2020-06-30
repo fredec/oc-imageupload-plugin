@@ -13,7 +13,7 @@ use Input;
 
 class OtimizarImage {
 
-	static public $compression=100;
+	static public $compression=80;
 	static public $tamanho_max=3000;
 	static public $converter_jpg=false;
 	static public $name_arq=false;
@@ -21,8 +21,8 @@ class OtimizarImage {
 	static public $rename=true;
 	static public $imagem_marca=false;
 
-	static public $compression_small_size=50000;
-	static public $compression_small=20;
+	static public $compression_small_size=10000;
+	static public $compression_small=80;
 
 	function __construct($config=false)
 	{
@@ -176,14 +176,14 @@ class OtimizarImage {
 		// fclose($fp);
 
 		$filesize=filesize($caminho);
-		if($filesize <= self::$compression_small_size) self::$compression=self::$compression_small;
+		// if($filesize <= self::$compression_small_size) self::$compression=self::$compression_small;
 
 		$image=new Image($caminho);
 		
 		// RESIZE IMAGE TAMANHO MÁXIMO
 		$size = getimagesize($caminho);
 		if($size[0] > self::$tamanho_max && $size[0] > $size[1]) $image->resize(self::$tamanho_max,false,'transparent');
-		elseif($size[1] > self::$tamanho_max && $size[1] > $size[0]) $image->resize(false,self::$tamanho_max,'transparent');
+		// elseif($size[1] > self::$tamanho_max && $size[1] > $size[0]) $image->resize(false,self::$tamanho_max,'transparent');
 		// else $image->resize($size[0],false,'transparent');
 		// RESIZE IMAGE TAMANHO MÁXIMO
 

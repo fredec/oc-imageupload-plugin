@@ -97,7 +97,7 @@ class Plugin extends PluginBase
 
 
 			$permissoes=(array) $user->permissions;
-			if($user->role_id == 2 or (isset($permissoes['delete_media']) && $permissoes['delete_media'] == 1) ) $widget->addDynamicProperty('deletar', true);
+			if($user->hasAccess('delete_media') or $user->role_id == 2 or (isset($permissoes['delete_media']) && $permissoes['delete_media'] == 1) ) $widget->addDynamicProperty('deletar', true);
 			else $widget->addDynamicProperty('deletar', false);
 
 			if(isset($permissoes['readOnly_media']) && $permissoes['readOnly_media'] == 1) $widget->readOnly=true;
