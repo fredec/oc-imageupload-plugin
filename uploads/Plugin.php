@@ -186,7 +186,7 @@ class Plugin extends PluginBase
 			if($ext == 'ico' || $ext == 'json') return;
 			$base='storage/app/media';
 			$arquivo=str_replace('//','/',$base.$filePath);
-			if(!exif_imagetype($arquivo)) return;
+			// if(!exif_imagetype($arquivo)) return;
 
 			$config=array();
 			if(strpos("[".$filePath."]", "uploaded-files/")){

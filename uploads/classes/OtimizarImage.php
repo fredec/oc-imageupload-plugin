@@ -152,11 +152,17 @@ class OtimizarImage {
 		$ext=explode('.', $imagem); $ext=end($ext);
 		$ext_original=$ext;
 
+		$caminho=str_replace($base,'',$imagem);
+		// if(!strpos("[".$caminho."]", ".") || !file_exists($caminho) || (file_exists($caminho) && !exif_imagetype($caminho))) return false;
+		if(!strpos("[".$caminho."]", ".") || !file_exists($caminho)) return false;
+
+		$type_imagem=true;
+		if(!exif_imagetype($caminho)) $type_imagem=false;
+
 		if(self::$converter_jpg) $ext='jpg';
+		if(!$type_imagem) $ext=$ext_original;
 		// if($ext == 'jpeg' || self::$converter_jpg) $ext='jpg';
 
-		$caminho=str_replace($base,'',$imagem);
-		if(!strpos("[".$caminho."]", ".") || !file_exists($caminho) || (file_exists($caminho) && !exif_imagetype($caminho))) return false;
 		$caminho_novo=str_replace('.'.$ext_original,'.'.$ext,$caminho);
 
 		// ///////////////////////////////////////
@@ -175,25 +181,25 @@ class OtimizarImage {
 		// fwrite($fp, json_encode(filesize($caminho)));
 		// fclose($fp);
 
-		$filesize=filesize($caminho);
+		if($type_imagem){
+			$filesize=filesize($caminho);
 		// if($filesize <= self::$compression_small_size) self::$compression=self::$compression_small;
+			$image=new Image($caminho);
 
-		$image=new Image($caminho);
-		
 		// RESIZE IMAGE TAMANHO MÁXIMO
-		$size = getimagesize($caminho);
-		if($size[0] > self::$tamanho_max && $size[0] > $size[1]) $image->resize(self::$tamanho_max,false,'transparent');
+			$size = getimagesize($caminho);
+			if($size[0] > self::$tamanho_max && $size[0] > $size[1]) $image->resize(self::$tamanho_max,false,'transparent');
 		// elseif($size[1] > self::$tamanho_max && $size[1] > $size[0]) $image->resize(false,self::$tamanho_max,'transparent');
 		// else $image->resize($size[0],false,'transparent');
 		// RESIZE IMAGE TAMANHO MÁXIMO
-
+		}
 
 			// //////////VERIFICAR SE EXITE IMAGE COM MESMO NOME E CRIAR UM NOME COM UM ID
 		$texto='';
 		if((!self::$name_arq || $ext != $ext_original) && $local == 'midias' && self::$rename){
 
 			$arq_=explode('/', $caminho_novo);
-			
+
 			$name=end($arq_); $name=str_replace('.'.$ext, '', $name);
 			$caminho_base=str_replace('/'.$name.'.'.$ext,'',$caminho_novo);
 			$name_original=$name;
@@ -213,12 +219,20 @@ class OtimizarImage {
 
 		}
 
+		// $arquivo = "meu_arquivo.txt";
+		// $fp = fopen($arquivo, "w+");
+		// fwrite($fp, $caminho.' - '.$caminho_novo);
+		// fclose($fp);
+
+		if($type_imagem){
 		// MediaLibrary::instance()->moveFile( $filePath_local_new, $newPath );
 			// //////////VERIFICAR SE EXITE IMAGE COM MESMO NOME E CRIAR UM NOME COM UM ID
+		// SALVANDO IMAGES
+			$image->save($caminho_novo,$ext,self::$compression);
+		// SALVANDO IMAGES
+		}else rename($caminho, $caminho_novo);
 
-		// SALVANDO IMAGES
-		$image->save($caminho_novo,$ext,self::$compression);
-		// SALVANDO IMAGES
+		if(!$type_imagem) return;
 
 		// if($ext == 'jpg' && self::$compression < 100) self::compress_images($caminho_novo,$caminho_novo,self::$compression);
 
