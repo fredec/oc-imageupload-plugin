@@ -40,6 +40,12 @@ use Backend\Facades\BackendAuth;
 
 use Diveramkt\Uploads\Classes\OtimizarImage;
 
+use October\Rain\Database\Attach\Resizer;
+// use October\Rain\Database\Attach\File;
+
+// Resizer::open(Input::file('field_name'))->resize(800, 600, 'crop')->save('path/to/file.jpg', 100);
+use Storage;
+
 class Plugin extends PluginBase
 {
 	public function registerComponents()
@@ -75,6 +81,12 @@ class Plugin extends PluginBase
 	// 	// return [ 'Creator\Client\FormWidgets\FileUploader' => [ 'label' => 'FileUploader', 'code' => 'FileUploader' ], ];
 	// 	return [ 'Diveramkt\Uploads\FormWidgets\FileUpload' => [ 'label' => "FileUpload", "alias" => "ckafileupload" ], ];
 	// }
+
+	public function veri_extension_image($ext){
+		$ext=mb_strtolower($ext, 'UTF-8');
+		if($ext == 'jpeg' or $ext == 'jpg' or $ext == 'png') return true;
+		else false;
+	}
 
 	public function boot(){
 		include 'plugins/diveramkt/uploads/classes/Gregwar/Image/Image.php';
@@ -119,6 +131,14 @@ class Plugin extends PluginBase
 			// return;
 			$model->bindEvent('model.beforeCreate', function() use ($model) {
 
+				// $texto=$model->extension;
+				// $arquivo = "meu_arquivo.txt";
+				// $fp = fopen($arquivo, "w+");
+				// fwrite($fp, $texto);
+				// fclose($fp);
+
+				// return;
+
 				// return;
 			// $model->bindEvent('model.afterUpdate', function($veri=false) use ($model) {
 			// $model->bindEvent('model.beforeUpdate', function($veri) use ($model) {
@@ -132,38 +152,46 @@ class Plugin extends PluginBase
 				// return;
 				if($model->extension == 'ico' || $model->extension == 'json') return;
 				// if(!exif_imagetype($model->path)) return;
-				if(!strpos("[".$model->path."]", ".")  || !exif_imagetype($model->path)) return;
-				if($model->file_size <= '10000') $config['compression']=100;
+				if(
+					!strpos("[".$model->path."]", ".") || 
+					// !exif_imagetype($model->path)
+					!$this->veri_extension_image($model->extension)
+				) return;
+					if($model->file_size <= '10000') $config['compression']=100;
 
-				$config['name_arq']=true;
-				$config['rename']=false;
-				$image=new OtimizarImage($config);
+					$config['name_arq']=true;
+					$config['rename']=false;
+					$image=new OtimizarImage($config);
 
-				$retorno=$image->otimizar($model->path,'system_files');
+					$retorno=$image->otimizar($model->path,'system_files');
 
-				if($retorno){
-					$exp=explode('.', $model->file_name); $exp=end($exp);
+					if($retorno){
+						$exp=explode('.', $model->file_name); $exp=end($exp);
 
-					$model->disk_name=str_replace('.'.$exp,'.'.$retorno['ext'], $model->disk_name);
-					$model->file_name=str_replace('.'.$exp,'.'.$retorno['ext'], $model->file_name);
+						$model->disk_name=str_replace('.'.$exp,'.'.$retorno['ext'], $model->disk_name);
+						$model->file_name=str_replace('.'.$exp,'.'.$retorno['ext'], $model->file_name);
 
-					$model->content_type=$retorno['mime_type'];
+						$model->content_type=$retorno['mime_type'];
 					// $model->file_size=$retorno['filesize'];
-				}
-			});
+					}
+				});
 
 			$model->bindEvent('model.afterCreate', function() use ($model) {
 				// return;
+				// return;
 				if($model->extension == 'ico' || $model->extension == 'json') return;
 				// if(!exif_imagetype($model->path)) return;
-				if(!strpos("[".$model->path."]", ".") || !exif_imagetype($model->path)) return;
+				if(!strpos("[".$model->path."]", ".") || 
+					// !exif_imagetype($model->path)
+					!$this->veri_extension_image($model->extension)
+				) return;
 
 				// return;
 				// if (!$model->isValid()) {
 				// 	throw new \Exception("Invalid Model!");
 				// }
 
-				$base = 'http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . str_replace('//', '/', dirname($_SERVER['SCRIPT_NAME']) . '/');
+					$base = 'http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . str_replace('//', '/', dirname($_SERVER['SCRIPT_NAME']) . '/');
 				$base=str_replace('\/','/',$base);
 				if(file_exists(str_replace($base,'',$model->path))){
 					// $texto=filesize(str_replace($base,'',$model->path));
@@ -199,6 +227,74 @@ class Plugin extends PluginBase
 
 		} );
 
+	}
+
+	private function getPhpFunctions()
+	{
+		return [
+			// file_name
+			'copyname' => function($path=false, $nome=false, $pasta=false){
+				if(!strpos("[".$path."]", "/storage/") or !$nome) return $path;
+				$exp=explode('/', $path);
+				$arquivo=end($exp);
+
+				$exp=explode('.', $arquivo);
+				$name=$exp[0];
+				$ext=end($exp);
+
+				if(isset($nome['file_name'])){
+					if($nome['title']) $nome=$this->create_slug($nome['title']).'.'.$nome['extension'];
+					else $nome=$nome['file_name'];
+				}
+				
+				$new_name=explode('/', $nome);
+				$new_name=end($new_name);
+
+				$veri=explode('.', $new_name);
+				$veri[0]=$this->create_slug($veri[0]);
+				$new_name=implode('.', $veri);
+
+				if($pasta) $path_new=str_replace($arquivo, $pasta.'/'.$new_name, $path);
+				else $path_new=str_replace($arquivo, $new_name, $path);
+
+				$path_new=explode('/storage/', $path_new);
+				$http=$path_new[0];
+				$path_new=end($path_new);
+				$path_new='storage/'.$path_new;
+
+				$path_interno=str_replace($new_name, '', $path_new);
+				if(!file_exists($path_interno)) mkdir($path_interno, 0777);
+
+				if(!file_exists($path_new)) copy($path, $path_new);
+				return $http.'/'.$path_new;
+			},
+		];
+	}
+
+	public function create_slug($string) {
+		$table = array(
+			'Š'=>'S', 'š'=>'s', 'Đ'=>'Dj', 'đ'=>'dj', 'Ž'=>'Z', 'ž'=>'z', 'Č'=>'C', 'č'=>'c', 'Ć'=>'C', 'ć'=>'c',
+			'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E',
+			'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I', 'Ï'=>'I', 'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O',
+			'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U', 'Ú'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss',
+			'à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 'ä'=>'a', 'å'=>'a', 'æ'=>'a', 'ç'=>'c', 'è'=>'e', 'é'=>'e',
+			'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o',
+			'ô'=>'o', 'õ'=>'o', 'ö'=>'o', 'ø'=>'o', 'ù'=>'u', 'ú'=>'u', 'û'=>'u', 'ý'=>'y', 'ý'=>'y', 'þ'=>'b',
+			'ÿ'=>'y', 'Ŕ'=>'R', 'ŕ'=>'r', '/' => '-', ' ' => '-'
+		);
+		$stripped = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $string);
+		return strtolower(strtr($string, $table));
+	}
+
+	public function registerMarkupTags()
+	{
+		$filters = [];
+        // add PHP functions
+		$filters += $this->getPhpFunctions();
+
+		return [
+			'filters'   => $filters,
+		];
 	}
 
 }
