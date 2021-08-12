@@ -1,13 +1,16 @@
+fields:
+    disabled:
+        label: 'Desabilitar'
+        span: full
+        type: switch
+        tab: Configurações
+        default: 0
 tabs:
     fields:
         name_arq:
-            label: 'Manter nome original'
-            span: left
-            type: switch
-            tab: Configurações
-        converter_jpg:
-            label: 'Converter imagens para JPG'
-            span: right
+            label: 'Manter nome original (Uploads na área do Media)'
+            span: full
+            comment: 'Caso desativado, transforma o nome do arquivo em slug (Nome de Teste -> nome-de-teste), caso ativado apenas converte os espaços (Nome de Teste -> Nome-de-Teste)'
             type: switch
             tab: Configurações
         tamanho_max:
@@ -16,10 +19,42 @@ tabs:
             type: number
             tab: Configurações
         compression:
-            label: 'Qualidade de compressão (Padrão: 80)'
+            label: 'Qualidade de compressão (Padrão: 90)'
             span: auto
             type: number
             tab: Configurações
+        converter_webp:
+            label: 'Converter imagens para WEBP no resize'
+            span: full
+            comment: 'Verifica se o navegador suporta a extensão webp e converte automaticamente todas as imagens que for utilizado |resize'
+            type: switch
+            tab: 'Converter extensão'
+        resize_max_width:
+            label: 'Resize max height width'
+            span: auto
+            comment: 'As imagens com |resize terão a altura e largura máxima original da imagem quanto o mode crop não estiver habilitado'
+            type: switch
+            tab: 'Converter extensão'
+        # converter_jpg:
+        #     label: 'Converter imagens para JPG'
+        #     span: left
+        #     type: switch
+        #     tab: 'Converter extensão'
+        converter_ext:
+            label: 'Converter extensão das imagens'
+            span: left
+            type: dropdown
+            emptyOption: 'Desativado'
+            options:
+                jpg: 'JPG'
+                webp: 'WEBP'
+            tab: 'Converter extensão'
+        # buscar_fields:
+        #     label: 'Buscar Campos de imagens'
+        #     span: full
+        #     type: partial
+        #     path: $/diveramkt/uploads/models/settings/_buscar_fields.htm
+        #     tab: 'Converter extensão'
         compression_small_size:
             label: 'Size imagens pequenas (Padrão: 50 Kbs)'
             span: left
@@ -32,6 +67,23 @@ tabs:
             type: number
             hidden: 1
             tab: Compressão
+        enabled_marca:
+            label: 'Habilitar Marca D''agua'
+            showSearch: true
+            span: full
+            type: switch
+            tab: 'Marca D''água'
+        atualizacao_marca:
+            label: 'Marca Atualizada'
+            span: right
+            # disabled: 0
+            # readOnly: 0
+            # hidden: 1
+            type: text
+            hidden: 1
+            # type: partial
+            # path: ~\plugins\diveramkt\uploads\models\settings\_data_marca.htm
+            tab: 'Marca D''água'
         posicao_horizonal:
             label: 'Posição horizontal'
             options:
@@ -77,8 +129,31 @@ tabs:
             span: left
             type: number
             tab: 'Marca D''água'
+        api_tiny_enabled:
+            label: 'Tinypng habilitado'
+            span: full
+            type: switch
+            default: 0
+            tab: 'API TinyPng'
         api_tiny:
             label: 'Key Tinypng'
             span: auto
             type: text
             tab: 'API TinyPng'
+# secondaryTabs:
+#     fields:
+#         redirect_www:
+#             label: 'Redirect no_www para www'
+#             span: auto
+#             options:
+#                 0: Desativado
+#                 301: '301 - Permanente'
+#                 302: '302 - Temporário'
+#             showSearch: true
+#             type: dropdown
+#             tab: Redirects
+#         sub_dominios:
+#             label: 'Prefixos dos Sub domínios'
+#             span: auto
+#             type: textarea
+#             tab: Redirects
