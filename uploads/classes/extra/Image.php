@@ -8,6 +8,7 @@ use Http;
 use Storage;
 // use Tinify\Tinify;
 // use Tinify\Source;
+use Cache;
 
 class Image
 {
@@ -299,7 +300,8 @@ protected function copyRename($public=false){
         if (!isset($options['mode']) && $this->settings->default_mode) {
             $options['mode'] = $this->settings->default_mode;
         }
-        if (!isset($options['offset']) && is_int($this->settings->default_offset_x) && is_int($this->settings->default_offset_y)) {
+        if (!isset($options['offset'])) {
+        // if (!isset($options['offset']) && is_int($this->settings->default_offset_x) && is_int($this->settings->default_offset_y)) {
             $options['offset'] = [$this->settings->default_offset_x, $this->settings->default_offset_y];
         }
         if (!isset($options['extension']) && $this->settings->default_extension) {

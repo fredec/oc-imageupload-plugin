@@ -364,7 +364,7 @@ class Plugin extends PluginBase
 		$url=MediaLibrary::url($filePath);
 		$filePath='/media'.$filePath;
 		if(config('cms.storage.media.disk') == 'local'){
-			$url=url('/').$url;
+			if(!strpos("[".$url."]", url('/'))) $url=url('/').$url;
 			// $filePath=storage_path('app'.$filePath);
 			$filePath='storage/app'.$filePath;
 		}

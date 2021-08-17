@@ -942,8 +942,15 @@ class Fileuploads extends Model
 
 
         if(str_replace(url('/').'/', '', $sourcePath) != $this->filesave){
-            if(FileHelper::copy($sourcePath, $this->filesave)) FileHelper::delete(str_replace(url('/').'/', '', $sourcePath));
-            else return false;
+            // MediaLibrary::instance()->moveFile( str_replace('%20', ' ', $sourcePath), $this->filesave );
+
+            if(strpos("[".$sourcePath."]", " ")){
+                $sourcePath=str_replace('/http', 'http', $sourcePath);
+                MediaLibrary::instance()->moveFile( $sourcePath, $this->filesave );
+            }else{
+                if(FileHelper::copy($sourcePath, $this->filesave)) FileHelper::delete(str_replace(url('/').'/', '', $sourcePath));
+                elseif(@!rename($sourcePath, $this->filesave)) return false;
+            }
         }
         $this->filesave=$this->resizeActive($this->filesave);
         $this->success=true;
