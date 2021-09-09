@@ -106,17 +106,10 @@ class OtimizarImage {
 		if(!$url || !$file->checkFile($url)) return false;
 		$file->setFolder($infos['dirname'], $link);
 
-		// $arquivo = fopen('meuarquivo.txt','w+');
-		// if ($arquivo == false) die('Não foi possível criar o arquivo.');
-		// $texto=$url.' - '.json_encode($infos);
-		// fwrite($arquivo, $texto);
-		// fclose($arquivo);
-		// return true;
-
 		if($local == 'media'){
 			if(!$this->config['name_arq']) $new_name=str::slug($infos['filename']);
 			$new_name=str_replace(['%20',' '], ['-','-'], $infos['filename']);
-			$file->setRename($new_name);
+			$file->setRename(mb_strtolower($new_name, 'UTF-8'));
 		}
 
 		$options=[

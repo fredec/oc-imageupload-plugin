@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\File\File as FileObj;
 use Exception;
 use October\Rain\Database\Attach\Resizer;
 use Gregwar\Image\Image;
+use System\Classes\MediaLibrary;
 
 /**
  * File attachment model
@@ -944,13 +945,24 @@ class Fileuploads extends Model
         if(str_replace(url('/').'/', '', $sourcePath) != $this->filesave){
             // MediaLibrary::instance()->moveFile( str_replace('%20', ' ', $sourcePath), $this->filesave );
 
-            if(strpos("[".$sourcePath."]", " ")){
-                $sourcePath=str_replace('/http', 'http', $sourcePath);
-                MediaLibrary::instance()->moveFile( $sourcePath, $this->filesave );
-            }else{
-                if(FileHelper::copy($sourcePath, $this->filesave)) FileHelper::delete(str_replace(url('/').'/', '', $sourcePath));
-                elseif(@!rename($sourcePath, $this->filesave)) return false;
-            }
+            // $texto=$sourcePath.' - '.$this->filesave;
+            // $arquivo = "meu_arquivo.txt";
+            // $fp = fopen($arquivo, "w+");
+            // fwrite($fp, $texto);
+            // fclose($fp);
+
+            $ori=str_replace(array('/http','%20',url('/').'/'), array('http',' ',''), $sourcePath);
+            if(FileHelper::copy($sourcePath, $this->filesave)) FileHelper::delete($ori);
+            else rename($ori, $this->filesave);
+            // Storage::move($ori, $this->filesave);
+
+            // if(strpos("[".$sourcePath."]", " ")){
+            //     $sourcePath=str_replace('/http', 'http', $sourcePath);
+            //     MediaLibrary::instance()->moveFile( $sourcePath, $this->filesave );
+            // }else{
+            // if(FileHelper::copy($sourcePath, $this->filesave)) FileHelper::delete(str_replace(url('/').'/', '', $sourcePath));
+            //     elseif(@!rename($sourcePath, $this->filesave)) return false;
+            // }
         }
         $this->filesave=$this->resizeActive($this->filesave);
         $this->success=true;

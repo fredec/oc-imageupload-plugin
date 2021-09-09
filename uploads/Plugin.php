@@ -74,7 +74,7 @@ class Plugin extends PluginBase
 				'class'       => 'DiveraMkt\Uploads\Models\Settings',
 				'order'       => 500,
 				'keywords'    => 'uploads imagens diveramkt',
-				'permissions' => ['Uploads.manage_upload'],
+				'permissions' => ['manage_upload'],
 			]
 		];
 	}
