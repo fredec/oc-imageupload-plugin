@@ -248,249 +248,263 @@ class Plugin extends PluginBase
 	// }
 
 
-	Event::listen('backend.page.beforeDisplay', function($controller, $action, $params) {
-		$class=get_declared_classes();
+		Event::listen('backend.page.beforeDisplay', function($controller, $action, $params) {
+			$class=get_declared_classes();
         // $controller->addJs('/path/to/your/javascript/file.js');
-		$user = BackendAuth::getUser();
-		if(isset($user->id) && $user->id && (in_array('Arcane\Seo\Models\Settings', $class) || in_array('Arcane\Seo\Plugin', $class))){
-			$infosArcane = \Arcane\Seo\Models\Settings::instance();
-			if($infosArcane->minify_html) \Storage::deleteDirectory('arcane/seo/minify');
-		}
-		if($user->id && in_array('SerenityNow\Cacheroute\Plugin', $class)) Artisan::call('cache:clear');
+			$user = BackendAuth::getUser();
+			if(isset($user->id) && $user->id && (in_array('Arcane\Seo\Models\Settings', $class) || in_array('Arcane\Seo\Plugin', $class))){
+				$infosArcane = \Arcane\Seo\Models\Settings::instance();
+				if($infosArcane->minify_html) \Storage::deleteDirectory('arcane/seo/minify');
+			}
+			if($user->id && in_array('SerenityNow\Cacheroute\Plugin', $class)) Artisan::call('cache:clear');
 		// if(in_array('Arcane\Seo\Models\Settings', $class) || in_array('Arcane\Seo\Plugin', $class)){}
-	});
-
-	if(in_array('RainLab\Translate\Plugin', $class) && in_array('SerenityNow\Cacheroute\Plugin', $class)){
-		Event::listen('translate.localePicker.translateQuery', function($page, $params, $oldLocale, $newLocale) {
-				// if(in_array('SerenityNow\Cacheroute\Plugin', $class)) 
-			Artisan::call('cache:clear');
 		});
-	}
+
+		if(in_array('RainLab\Translate\Plugin', $class) && in_array('SerenityNow\Cacheroute\Plugin', $class)){
+			Event::listen('translate.localePicker.translateQuery', function($page, $params, $oldLocale, $newLocale) {
+				// if(in_array('SerenityNow\Cacheroute\Plugin', $class)) 
+				Artisan::call('cache:clear');
+			});
+		}
 
 		// //////////////GERENCIAMENTO NAS IMAGENS E ARQUIVOS NO MEDIA
-	\Backend\Widgets\MediaManager::extend(function ($widget) {
+		\Backend\Widgets\MediaManager::extend(function ($widget) {
 		// \Diveramkt\Uploads\Backend\Widgets\MediaManagerExtend::extend(function ($widget) {
 
 			// const FOLDER_ROOT = '/obituarios/2020/';
 			// $widget->vars['isRootFolder']='/obituarios/2020/';
 
-		$user = BackendAuth::getUser();
+			$user = BackendAuth::getUser();
 
-		$permissoes=(array) $user->permissions;
-		if($user->hasAccess('delete_media') or $user->role_id == 2 or (isset($permissoes['delete_media']) && $permissoes['delete_media'] == 1) ) $widget->addDynamicProperty('deletar', true);
-		else $widget->addDynamicProperty('deletar', false);
+			$permissoes=(array) $user->permissions;
+			if($user->hasAccess('delete_media') or $user->role_id == 2 or (isset($permissoes['delete_media']) && $permissoes['delete_media'] == 1) ) $widget->addDynamicProperty('deletar', true);
+			else $widget->addDynamicProperty('deletar', false);
 
-		if(isset($permissoes['readOnly_media']) && $permissoes['readOnly_media'] == 1) $widget->readOnly=true;
-		$widget->addViewPath(plugins_path().'/diveramkt/uploads/backend/widgets/mediamanager/partials/');
+			if(isset($permissoes['readOnly_media']) && $permissoes['readOnly_media'] == 1) $widget->readOnly=true;
+			$widget->addViewPath(plugins_path().'/diveramkt/uploads/backend/widgets/mediamanager/partials/');
 
-	});
+		});
 		// //////////////GERENCIAMENTO NAS IMAGENS E ARQUIVOS NO MEDIA
 
-	\System\Models\File::extend(function($model) {
+		\System\Models\File::extend(function($model) {
 
 
-		$model->bindEvent('model.afterCreate', function() use ($model) {
+			$model->bindEvent('model.afterCreate', function() use ($model) {
 		// $model->bindEvent('model.afterUpdate', function() use ($model) {
-			if((isset($this->config['disabled']) and $this->config['disabled']) || !strpos("[".$model->path."]", ".") || !$this->veri_extension_image($model->extension)) return;
+				if((isset($this->config['disabled']) and $this->config['disabled']) || !strpos("[".$model->path."]", ".") || !$this->veri_extension_image($model->extension)) return;
 
-			if(!isset($model->id)) return;
-			$veri=Db::table('system_files')
-			->where('id', $model->id)
-			->first();
+				if(!isset($model->id)) return;
+				$veri=Db::table('system_files')
+				->where('id', $model->id)
+				->first();
 
-			if($veri->attachment_type == 'Cms\Models\ThemeData') return;
+				if($veri->attachment_type == 'Cms\Models\ThemeData') return;
 
-			if(strpos("[".$veri->attachment_type."]", "Diveramkt") && strpos("[".$veri->attachment_type."]", "Uploads") && strpos("[".$veri->attachment_type."]", "Settings")){
-				$settings_upload_atualizacao = \Diveramkt\Uploads\Models\Settings::instance();
-				$settings_upload_atualizacao->atualizacao_marca=date('YmdHis');
-				$settings_upload_atualizacao->save();
-			}
-
-			if($model->file_size <= '10000') $config['compression']=100;
-
-			$config['name_arq']=true;
-			$config['rename']=false;
-			$image=new OtimizarImage($config);
-
-			$link=explode(config('cms.storage.uploads.path'), $model->path);
-			$link='/uploads'.end($link);
-			// if(config('cms.storage.uploads.disk') == 'local') $link=storage_path('app'.$link);
-			if(config('cms.storage.uploads.disk') == 'local') $link='storage/app'.$link;
-
-			$retorno=$image->otimizar($model->path,$link,'uploads');
-			$retorno=$retorno['infos_results'];
-
-			if($retorno){
-				$infodb=pathinfo($model->file_name);
-				$ext=$infodb['extension'];
-
-				$model->disk_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->disk_name);
-				$model->file_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->file_name);
-
-				$model->content_type=$retorno['mime_type'];
-
-				$filesize=false;
-				if(isset($retorno['filesize']) && $retorno['filesize']) $filesize=$retorno['filesize'];
-
-				$up=[
-					'disk_name' => $model->disk_name,
-					'file_name' => $model->file_name,
-					'content_type' => $model->content_type
-				];
-				if($filesize) $up['file_size']=$filesize;
-
-				if($up){
-					Db::table('system_files')
-					->where('id', $model->id)
-					->update($up);
+				if(strpos("[".$veri->attachment_type."]", "Diveramkt") && strpos("[".$veri->attachment_type."]", "Uploads") && strpos("[".$veri->attachment_type."]", "Settings")){
+					$settings_upload_atualizacao = \Diveramkt\Uploads\Models\Settings::instance();
+					$settings_upload_atualizacao->atualizacao_marca=date('YmdHis');
+					$settings_upload_atualizacao->save();
 				}
-			}
+
+				if($model->file_size <= '10000') $config['compression']=100;
+
+				$config['name_arq']=true;
+				$config['rename']=false;
+				$image=new OtimizarImage($config);
+
+				$link=explode(config('cms.storage.uploads.path'), $model->path);
+				$link='/uploads'.end($link);
+			// if(config('cms.storage.uploads.disk') == 'local') $link=storage_path('app'.$link);
+				if(config('cms.storage.uploads.disk') == 'local') $link='storage/app'.$link;
+
+				$retorno=$image->otimizar($model->path,$link,'uploads');
+				$retorno=$retorno['infos_results'];
+
+				if($retorno){
+					$infodb=pathinfo($model->file_name);
+					$ext=$infodb['extension'];
+
+					$model->disk_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->disk_name);
+					$model->file_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->file_name);
+
+					$model->content_type=$retorno['mime_type'];
+
+					$filesize=false;
+					if(isset($retorno['filesize']) && $retorno['filesize']) $filesize=$retorno['filesize'];
+
+					$up=[
+						'disk_name' => $model->disk_name,
+						'file_name' => $model->file_name,
+						'content_type' => $model->content_type
+					];
+					if($filesize) $up['file_size']=$filesize;
+
+					if($up){
+						Db::table('system_files')
+						->where('id', $model->id)
+						->update($up);
+					}
+				}
+
+			});
 
 		});
 
-	});
+		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
+			$info=pathinfo($filePath);
+			$ext=$info['extension'];
+			if((isset($this->config['disabled']) and $this->config['disabled']) || !$this->veri_extension_image($ext)) return;
 
-	Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
-		$info=pathinfo($filePath);
-		$ext=$info['extension'];
-		if((isset($this->config['disabled']) and $this->config['disabled']) || !$this->veri_extension_image($ext)) return;
+			$realPath = empty(trim($uploadedFile->getRealPath()))
+			? $uploadedFile->getPath() . DIRECTORY_SEPARATOR . $uploadedFile->getFileName()
+			: $uploadedFile->getRealPath();
 
-		$realPath = empty(trim($uploadedFile->getRealPath()))
-		? $uploadedFile->getPath() . DIRECTORY_SEPARATOR . $uploadedFile->getFileName()
-		: $uploadedFile->getRealPath();
+			$config=array();
+			$name=explode('/', $filePath);
+			$name=explode('.', end($name));
 
-		$config=array();
+			$url=MediaLibrary::url('').$name[0].'.'.$name[1];
+			$url2=MediaLibrary::url('').str::slug($name[0]).'.'.$name[1];
 
-		$url=MediaLibrary::url($filePath);
-		$filePath='/media'.$filePath;
-		if(config('cms.storage.media.disk') == 'local'){
-			if(!strpos("[".$url."]", url('/'))) $url=url('/').$url;
+			if($url != $url2){
+				$url_=implode('/',array_filter(explode('/', $url)));
+				$url2_=implode('/',array_filter(explode('/', $url2)));
+				if(FileHelper::copy($url_, $url2_)) FileHelper::delete($url_);
+				else rename($url_, $url2_);
+				$url=$url2;
+				$info=pathinfo($url);
+				$filePath='/'.$info['basename'];
+			}
+
+			$filePath='/media'.$filePath;
+			if(config('cms.storage.media.disk') == 'local'){
+				if(!strpos("[".$url."]", url('/'))) $url=url('/').$url;
 			// $filePath=storage_path('app'.$filePath);
-			$filePath='storage/app'.$filePath;
-		}
+				$filePath='storage/app'.$filePath;
+			}
 
-		$image=new OtimizarImage($config);
-		$retorno=$image->otimizar($url, $filePath,'media');
+			$image=new OtimizarImage($config);
+			$retorno=$image->otimizar($url, $filePath,'media');
 
-	});
+		});
 
-}
+	}
 
 // public $s3=null;
-public function isS3(){
-	if(config('cms.storage.uploads.disk') != 'local') return true;
-	else return false;
-}
-
-public function checkFile($path=false){
-	if(!$path) return;
-	if(config('cms.storage.uploads.disk') == 's3'){
-		$response = Http::get($path);
-		if($response->code == 200) return true;
+	public function isS3(){
+		if(config('cms.storage.uploads.disk') != 'local') return true;
 		else return false;
-	}elseif (is_file($path)) return true;
+	}
 
-	return false;
-}
+	public function checkFile($path=false){
+		if(!$path) return;
+		if(config('cms.storage.uploads.disk') == 's3'){
+			$response = Http::get($path);
+			if($response->code == 200) return true;
+			else return false;
+		}elseif (is_file($path)) return true;
 
-private function getPhpFunctions()
-{
-	return [
+		return false;
+	}
 
-		'copyname' => function($path=false, $nome=false){
-			return $path;
-		},
-		'marcaDagua' => function($path=false, $pasta_interna=false){
-			return $path;
+	private function getPhpFunctions()
+	{
+		return [
+
+			'copyname' => function($path=false, $nome=false){
+				return $path;
+			},
+			'marcaDagua' => function($path=false, $pasta_interna=false){
+				return $path;
 			// |marcaDagua()
-			if(!strpos("[".$path."]", "/storage/")) return $path;
-			$exp=explode('/', $path);
-			$arquivo=end($exp);
+				if(!strpos("[".$path."]", "/storage/")) return $path;
+				$exp=explode('/', $path);
+				$arquivo=end($exp);
 
 
-			$settings_upload = \Diveramkt\Uploads\Models\Settings::instance();
-			if(!$settings_upload->enabled_marca) return $path;
+				$settings_upload = \Diveramkt\Uploads\Models\Settings::instance();
+				if(!$settings_upload->enabled_marca) return $path;
 				// opacity_marca
 				// proporcao_marca
 				// espacamento_marca
 				// imagem_marca
 
-			$exp=explode('.', $arquivo);
-			$name=$exp[0];
-			$ext=end($exp);
-			$new_name=$name.'.'.$ext;
+				$exp=explode('.', $arquivo);
+				$name=$exp[0];
+				$ext=end($exp);
+				$new_name=$name.'.'.$ext;
 
-			if(!$pasta_interna) $pasta='marcaDagua';
-			else $pasta=$pasta_interna;
-			$path_new=str_replace($arquivo, $pasta, $path);
-			$path_new=explode('/storage/', $path_new); $http=$path_new[0]; $path_new=end($path_new); $path_new='storage/'.$path_new;
+				if(!$pasta_interna) $pasta='marcaDagua';
+				else $pasta=$pasta_interna;
+				$path_new=str_replace($arquivo, $pasta, $path);
+				$path_new=explode('/storage/', $path_new); $http=$path_new[0]; $path_new=end($path_new); $path_new='storage/'.$path_new;
 
 				// $options=$settings_upload->posicao_horizonal.$settings_upload->posicao_vertical.$settings_upload->opacity_marca.$settings_upload->proporcao_marca.$settings_upload->espacamento_marca;
-			$options=$settings_upload->atualizacao_marca;
+				$options=$settings_upload->atualizacao_marca;
 
-			if(!file_exists($path_new.'/'.$options)) if(file_exists($path_new)) $this->delTree($path_new);
-			$path_new.='/'.$options;
-			$path_new.='/'.$new_name;
+				if(!file_exists($path_new.'/'.$options)) if(file_exists($path_new)) $this->delTree($path_new);
+				$path_new.='/'.$options;
+				$path_new.='/'.$new_name;
 
 				// $path_new=str_replace($arquivo, $pasta.'/'.$new_name, $path);
 
-			if(file_exists($path_new)) return $http.'/'.$path_new;
+				if(file_exists($path_new)) return $http.'/'.$path_new;
 
-			$path_new=$this->gerar_pastas_image($path, $path_new);
+				$path_new=$this->gerar_pastas_image($path, $path_new);
 
-			$marcar=false;
-			if(!file_exists($path_new)){
-				$marcar=true;
-				copy($path, $path_new);
-			}
+				$marcar=false;
+				if(!file_exists($path_new)){
+					$marcar=true;
+					copy($path, $path_new);
+				}
 
 
-			if($marcar){
-				$image=new OtimizarImage();
-				$path_new=$image->marca_dagua($path_new);
-			}
+				if($marcar){
+					$image=new OtimizarImage();
+					$path_new=$image->marca_dagua($path_new);
+				}
 
 				// echo '<img src="'.$http.'/'.$path_new.'" width="100" />';
-			return $http.'/'.$path_new;
+				return $http.'/'.$path_new;
 
 				// return $settings_upload->imagem_marca->path;
 				// return $settings_upload->posicao_horizonal.$settings_upload->posicao_vertical.$settings_upload->opacity_marca.$settings_upload->proporcao_marca.$settings_upload->espacamento_marca;
-		},
-		'flip_image' => function($path, $horizontal=false, $vertical=false){
-			return $path;
-			$path_new=explode('/storage/', $path); $http=$path_new[0]; $path_new=end($path_new); $path_new='storage/'.$path_new;
-			$image=new OtimizarImage();
-			$path_new=$image->flip($path_new, $horizontal, $vertical);
-			return $http.'/'.$path_new;
-		},
-		'resize' => function($file_path, $width = false, $height = false, $options = []) {
-			$image = new \Diveramkt\Uploads\Classes\Extra\Image($file_path);
-			return $image->resize($width, $height, $options);
-		},
-	];
-}
-public function gerar_pastas_image($path, $path_new){
-
-	$exp=explode('/', $path_new);
-	$cam='';
-	foreach ($exp as $key => $value) {
-		if($value == end($exp)) continue;
-		$cam.=$value.'/';
-		if(!file_exists($cam)) mkdir($cam, 0777);
+			},
+			'flip_image' => function($path, $horizontal=false, $vertical=false){
+				return $path;
+				$path_new=explode('/storage/', $path); $http=$path_new[0]; $path_new=end($path_new); $path_new='storage/'.$path_new;
+				$image=new OtimizarImage();
+				$path_new=$image->flip($path_new, $horizontal, $vertical);
+				return $http.'/'.$path_new;
+			},
+			'resize' => function($file_path, $width = false, $height = false, $options = []) {
+				$image = new \Diveramkt\Uploads\Classes\Extra\Image($file_path);
+				return $image->resize($width, $height, $options);
+			},
+		];
 	}
+	public function gerar_pastas_image($path, $path_new){
 
-	return $path_new;
+		$exp=explode('/', $path_new);
+		$cam='';
+		foreach ($exp as $key => $value) {
+			if($value == end($exp)) continue;
+			$cam.=$value.'/';
+			if(!file_exists($cam)) mkdir($cam, 0777);
+		}
+
+		return $path_new;
 		// if(!file_exists($path_new)) copy($path, $path_new);
 		// return $http.'/'.$path_new;
-}
+	}
 
-public function delTree($dir=false) { 
-	$files = array_diff(scandir($dir), array('.','..')); 
-	foreach ($files as $file) { 
-		(is_dir("$dir/$file")) ? $this->delTree("$dir/$file") : unlink("$dir/$file"); 
-	} 
-	return rmdir($dir); 
-}
+	public function delTree($dir=false) { 
+		$files = array_diff(scandir($dir), array('.','..')); 
+		foreach ($files as $file) { 
+			(is_dir("$dir/$file")) ? $this->delTree("$dir/$file") : unlink("$dir/$file"); 
+		} 
+		return rmdir($dir); 
+	}
 
 	// public function limparDiretorio($pasta=false){
 	// 	 if(is_dir($pasta)) {
@@ -513,66 +527,66 @@ public function delTree($dir=false) {
 	// 	 }
 	// }
 
-public function registerMarkupTags()
-{
-	$filters = [];
+	public function registerMarkupTags()
+	{
+		$filters = [];
         // add PHP functions
-	$filters += $this->getPhpFunctions();
+		$filters += $this->getPhpFunctions();
 
-	return [
-		'filters'   => $filters,
-	];
-}
-
-private function addPositionedFormFields($form, $config, $where = null)
-{
-	$beforeFields   = [];
-	$afterFields    = [];
-	$sectionDetails = false;
-
-	$first = array_first($config, function () {
-		return true;
-	});
-
-	$beforeField = is_array($first) ? array_get($first, 'before') : null;
-	$afterField  = is_array($first) ? array_get($first, 'after') : null;
-
-	$fields = $form->fields;
-	if ($where == 'primary') {
-		$fields = $form->tabs["fields"];
-	}
-	if ($where == 'secondary') {
-		$fields = $form->secondaryTabs["fields"];
+		return [
+			'filters'   => $filters,
+		];
 	}
 
-	foreach ($fields as $field => $value) {
-		$item      = $form->getField($field);
-		$itemName  = $item->fieldName;
+	private function addPositionedFormFields($form, $config, $where = null)
+	{
+		$beforeFields   = [];
+		$afterFields    = [];
+		$sectionDetails = false;
 
-		if ($itemName == $afterField or  $itemName == $beforeField or $sectionDetails) {
-			if ($itemName == $afterField and !$sectionDetails) {
-				$sectionDetails = true;
-			} else {
-				$afterFields[$itemName] = $item->config;
-				$sectionDetails         = true;
-				$form->removeField($field);
+		$first = array_first($config, function () {
+			return true;
+		});
+
+		$beforeField = is_array($first) ? array_get($first, 'before') : null;
+		$afterField  = is_array($first) ? array_get($first, 'after') : null;
+
+		$fields = $form->fields;
+		if ($where == 'primary') {
+			$fields = $form->tabs["fields"];
+		}
+		if ($where == 'secondary') {
+			$fields = $form->secondaryTabs["fields"];
+		}
+
+		foreach ($fields as $field => $value) {
+			$item      = $form->getField($field);
+			$itemName  = $item->fieldName;
+
+			if ($itemName == $afterField or  $itemName == $beforeField or $sectionDetails) {
+				if ($itemName == $afterField and !$sectionDetails) {
+					$sectionDetails = true;
+				} else {
+					$afterFields[$itemName] = $item->config;
+					$sectionDetails         = true;
+					$form->removeField($field);
+				}
 			}
 		}
-	}
 
-	switch ($where) {
-		case 'primary':
-		$form->addTabFields($config, $where);
-		$form->addTabFields($afterFields, $where);
-		break;
-		case 'secondary':
-		$form->addSecondaryTabFields($config, $where);
-		$form->addSecondaryTabFields($afterFields, $where);
-		break;
-		default:
-		$form->addFields($config, $where);
-		$form->addFields($afterFields, $where);
+		switch ($where) {
+			case 'primary':
+			$form->addTabFields($config, $where);
+			$form->addTabFields($afterFields, $where);
+			break;
+			case 'secondary':
+			$form->addSecondaryTabFields($config, $where);
+			$form->addSecondaryTabFields($afterFields, $where);
+			break;
+			default:
+			$form->addFields($config, $where);
+			$form->addFields($afterFields, $where);
+		}
 	}
-}
 
 }

@@ -124,10 +124,12 @@ class Fileuploads extends Model
         else return false;
     }
     public function checkFile($path=false, $externo=0){
+
         if(!$path) return;
         $path=trim($path);
         if (!$this->isLocalStorage() || $externo) {
         // if(self::isExterno() || $externo){
+
             $response = Http::get($path);
             if($response->code == 200) return true;
             else return false;
