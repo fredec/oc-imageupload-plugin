@@ -360,17 +360,18 @@ class Plugin extends PluginBase
 			: $uploadedFile->getRealPath();
 
 			$config=array();
-			$name=explode('/', $filePath);
-			$name=explode('.', end($name));
+			$name=explode('/', $filePath); $name=explode('.', end($name));
 
-			$url=MediaLibrary::url('').$name[0].'.'.$name[1];
-			$url2=MediaLibrary::url('').str::slug($name[0]).'.'.$name[1];
+			$url=MediaLibrary::url('').$filePath;
+			$url2=MediaLibrary::url('').str_replace($name[0].'.'.$name[1], str::slug($name[0]).'.'.$name[1], $filePath);
 
 			if($url != $url2){
 				$url_=implode('/',array_filter(explode('/', $url)));
 				$url2_=implode('/',array_filter(explode('/', $url2)));
-				if(FileHelper::copy($url_, $url2_)) FileHelper::delete($url_);
-				else rename($url_, $url2_);
+				if($url_ != $url2_){
+					if(FileHelper::copy($url_, $url2_)) FileHelper::delete($url_);
+					else rename($url_, $url2_);
+				}
 				$url=$url2;
 				$info=pathinfo($url);
 				$filePath='/'.$info['basename'];
@@ -378,14 +379,14 @@ class Plugin extends PluginBase
 
 			$filePath='/media'.$filePath;
 			if(config('cms.storage.media.disk') == 'local'){
-				if(!strpos("[".$url."]", url('/'))) $url=url('/').$url;
+				if(!strpos("[".$url."]", url('/'))) $url=url($url);
 			// $filePath=storage_path('app'.$filePath);
 				$filePath='storage/app'.$filePath;
 			}
+			$url=str_replace('//storage/app', '/storage/app', $url);
 
 			$image=new OtimizarImage($config);
 			$retorno=$image->otimizar($url, $filePath,'media');
-
 		});
 
 	}
