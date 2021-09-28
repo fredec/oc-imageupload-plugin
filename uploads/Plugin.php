@@ -362,8 +362,8 @@ class Plugin extends PluginBase
 			$config=array();
 			$name=explode('/', $filePath); $name=explode('.', end($name));
 
-			$url=MediaLibrary::url('').$filePath;
-			$url2=MediaLibrary::url('').str_replace($name[0].'.'.$name[1], str::slug($name[0]).'.'.$name[1], $filePath);
+			$url=MediaLibrary::url($filePath);
+			$url2=MediaLibrary::url(str_replace($name[0].'.'.$name[1], str::slug($name[0]).'.'.$name[1], $filePath));
 
 			if($url != $url2){
 				$url_=implode('/',array_filter(explode('/', $url)));
@@ -378,12 +378,12 @@ class Plugin extends PluginBase
 			}
 
 			$filePath='/media'.$filePath;
+
 			if(config('cms.storage.media.disk') == 'local'){
 				if(!strpos("[".$url."]", url('/'))) $url=url($url);
 			// $filePath=storage_path('app'.$filePath);
 				$filePath='storage/app'.$filePath;
 			}
-			$url=str_replace('//storage/app', '/storage/app', $url);
 
 			$image=new OtimizarImage($config);
 			$retorno=$image->otimizar($url, $filePath,'media');
