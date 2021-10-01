@@ -4,15 +4,10 @@ namespace Diveramkt\Uploads;
 use System\Classes\PluginBase;
 use Event;
 use Db;
-// use Response;
-// use imagejpg;
 use Stdclass;
 use Input;
 use Auth;
-// use BackendAuth;
 use Backend\Models\User;
-// use October\Rain\Auth\AuthException;
-// use Backend\Facades\BackendAuth;
 
 use Diveramkt\Uploads\Models\Settings;
 use Diveramkt\Uploads\Models\Informacoes;
@@ -24,27 +19,14 @@ use Diveramkt\Uploads\Classes\Libtiny\Tinify\Source;
 use Diveramkt\Uploads\Classes\Libtiny\Tinify\Cliente;
 use Diveramkt\Uploads\Classes\Libtiny\Tinify;
 
-// use Diveramkt\Uploads\Classes\Wideimage\WideImage;
-
-// https://phpimageworkshop.com/
-// https://phpimageworkshop.com/quickstart.html
-// use Diveramkt\Uploads\Classes\PHPImageWorkshop\ImageWorkshop;
-
 use System\Classes\MediaLibrary;
-// use Diveramkt\Uploads\Formwidgets\FileUpload;
-
-// use Backend\FormWidgets\FileUpload;
-// use Diveramkt\Uploads\FormWidgets\FileUpload as FileUploadExtend;
-// use Diveramkt\Uploads\FormWidgets\FileUpload;
 
 use Backend\Facades\BackendAuth;
 use Diveramkt\Uploads\Classes\OtimizarImage;
-// use October\Rain\Database\Attach\Resizer;
 use October\Rain\Database\Attach\File;
 use File as FileHelper;
 use Diveramkt\Uploads\Classes\Extra\Fileuploads;
 
-// Resizer::open(Input::file('field_name'))->resize(800, 600, 'crop')->save('path/to/file.jpg', 100);
 use Storage;
 use Artisan;
 use Request;
@@ -80,16 +62,6 @@ class Plugin extends PluginBase
 	}
 
 
-	// "Method Diveramkt\Uploads\Classes\Gregwar\Image\Image::__toString() must not throw an exception, caught Error:
-	// Class 'Diveramkt\Uploads\Classes\Gregwar\Cache\Cache' not found" on line 118 of /var/www/jadapaxcuidar.october/public_html/plugins/diveramkt/uploads/classes/OtimizarImage.php
-
-
-
-	// public function registerFormWidgets() {
-	// 	// return [ 'Creator\Client\FormWidgets\FileUploader' => [ 'label' => 'FileUploader', 'code' => 'FileUploader' ], ];
-	// 	return [ 'Diveramkt\Uploads\FormWidgets\FileUpload' => [ 'label' => "FileUpload", "alias" => "ckafileupload" ], ];
-	// }
-
 	public function veri_extension_image($ext){
 		$ext=mb_strtolower($ext, 'UTF-8');
 		if($ext == 'jpeg' or $ext == 'jpg' or $ext == 'png') return true;
@@ -111,142 +83,7 @@ class Plugin extends PluginBase
 	}
 
 	public function boot(){
-
-		// $image=url('/').'/themes/simple/assets/images/1-safol-Missao.jpg';
-
-		// $image=url('/').'/teste/teste2.jpg';
-		// $file = new Fileuploads;
-		// $file->deleteThumbs($image);
-		
-		// $file->setFolder('teste');
-		// $file->setRename('teste2');
-		// if($this->isExterno()) $file->fromUrl($url);
-		// else $file->fromFile($url);
-		// $file->fromFile($image);
-
-
-		// $file = new Fileuploads;
-		// $file = new File;
-		// $image='themes/simple/assets/images/1-safol-Missao.jpg';
-		// $file->fromFile($image);
-
-		// $image='http://safol2018.october/storage/app/media/teste/floresta1.jpg';
-		// $image='https://safol.divera.com.br/storage/app/media/201412181055290.COMPRASSINPENSAR1812.jpg';
-		// $image='https://s3-sa-east-1.amazonaws.com/safol/media/teste/floresta1.jpg';
-		// $image='http://safol2018.october/storage/app/uploads/public/60d/e15/f46/60de15f469ae6325165174.jpg';
-
-		// $veri=pathinfo($this->base_link($image));
-		// // $veri=pathinfo('arquivo_renomeado.jpg');
-		// echo '<pre>';
-		// print_r($veri);
-		// echo '</pre>';
-
-		// echo '<pre>';
-		// print_r(urldecode(parse_url($image, PHP_URL_PATH)));
-		// echo '</pre>';
-
-
-		// $image2='http://safol2018.october/storage/app/uploads/public/60e/84a/173/thumb__100_0_0_0_auto.jpg';
-		// $file->setFolder('storage/app/media/teste');
-
-		// $file->setFolder('teste');
-		// $file->setRename('arquivo_renomeado.png');
-		// // $file->fromUrl($image);
-		// $file->fromFile($image);
-
-		// echo '<pre>';
-		// print_r($file->getResult());
-		// echo '</pre>';
-
-		// $image3='https://safol.divera.com.br/storage/app/uploads/public/61f/455/c87/thumb__312_0_0_0_auto.jpg';
-
-		// $veri=pathinfo($image3);
-
-		// echo '<pre>';
-		// print_r($veri);
-		// echo '</pre>';
-
-		// $image=base_path($image);
-		// echo $image;
-
-		// $options=[];
-		// $width=300;
-		// $height='auto';
-		// $thumb = $file->getThumb($width, $height, $options);
-		// echo $thumb;
-		// FileHelper::put();
-
-		// FileHelper::copy($image2, 'teste.jpg');
-
-		// // $directory=$file->getStorageDirectory();
-		// // $name=$file->disk_name;
-
-		// // $url='http://localhost/uploads/public/60e/847/aac/thumb__100_0_0_0_auto.jpg';
-		// // echo storage_path('app/'.'teste');
-
-		// // echo config('cms.storage.uploads.path');
-		// $thumb=explode('uploads/', $thumb);
-		// $thumb=end($thumb);
-		// $url=config('cms.storage.uploads.path').'/'.$thumb;
-
-		// $url=url('/').'/storage/app/uploads/public/60e/84a/173/thumb__100_0_0_0_auto.jpg';
-		// echo $url;
-		// echo '<img src="'.$url.'" />';
-
-
-		// echo '<br/>';
-		// echo '<br/>';
-		// echo '<br/>';
-		// echo '<br/>';
-
-
 		$class=get_declared_classes();
-		
-	// 	$settings_upload = \Diveramkt\Uploads\Models\Settings::instance();
-	// 	$this->config=$settings_upload;
-		
-	// 	$veri='';
-	// 	if(Request::server('DOCUMENT_ROOT')) $veri.=' '.Request::server('DOCUMENT_ROOT').' ';
-	// 	if(Request::server('CONTEXT_DOCUMENT_ROOT')) $veri.=' '.Request::server('CONTEXT_DOCUMENT_ROOT').' ';
-
-	// 	if(isset($settings_upload['redirect_www']) && $settings_upload['redirect_www']
-	// 		&& (!strpos("[".$veri."]", "C:/") || !strpos("[".$veri."]", "xampp/") || !strpos("[".$veri."]", ".october") || !strpos("[".$veri."]", "public_html"))
-	// 	){
-
-	// 		$red=$settings_upload['redirect_www'];
-
-	// 	$config['base_url'] = str_replace('\/','/','http' . ( Request::server('HTTPS') == 'on' ? 's' : '') . '://' . Request::server('HTTP_HOST') . str_replace('//', '/', dirname(Request::server('SCRIPT_NAME')) . '/'));
-
-	// 	$pos = strpos($config['base_url'], 'www');
-	// 	if ($pos === false) {
-
-	// 		$redirecionar=true;
-	// 		if(str_replace(' ','',$settings_upload['sub_dominios']) != ''){
-
-	// 			$subs = preg_replace('/[\n|\r|\n\r|\r\n]{2,}/',',', $settings_upload['sub_dominios']);
-	// 			$subs = preg_replace("/\r?\n/",',', $subs);
-	// 			$subs=explode(',', str_replace(';', ',', $subs));
-
-	// 			if(count($subs) > 0){
-	// 				foreach ($subs as $key => $sub) {
-	// 					if(strpos("[".$config['base_url']."]", "http://".$sub) || strpos("[".$config['base_url']."]", "https://".$sub)) $redirecionar=false; 
-	// 				}
-	// 			}
-
-	// 		}
-
-	// 		if($redirecionar){
-	// 			$url=(@Request::server('HTTPS') == 'on' ? 'https://' : 'http://').'www.'.Request::server('SERVER_NAME').Request::server('REQUEST_URI');
-
-	// 			header("HTTP/1.1 ".$red." Moved Permanently");
-	// 			header("Location:".$url);
-	// 			exit();
-	// 		}
-
-	// 	}
-
-	// }
-
 
 		Event::listen('backend.page.beforeDisplay', function($controller, $action, $params) {
 			$class=get_declared_classes();
@@ -363,20 +200,6 @@ class Plugin extends PluginBase
 			$name=explode('/', $filePath); $name=explode('.', end($name));
 
 			$url=MediaLibrary::url($filePath);
-			$url2=MediaLibrary::url(str_replace($name[0].'.'.$name[1], str::slug($name[0]).'.'.$name[1], $filePath));
-
-			if($url != $url2){
-				$url_=implode('/',array_filter(explode('/', $url)));
-				$url2_=implode('/',array_filter(explode('/', $url2)));
-				if($url_ != $url2_){
-					if(FileHelper::copy($url_, $url2_)) FileHelper::delete($url_);
-					else rename($url_, $url2_);
-				}
-				$url=$url2;
-				$info=pathinfo($url);
-				$filePath='/'.$info['basename'];
-			}
-
 			$filePath='/media'.$filePath;
 
 			if(config('cms.storage.media.disk') == 'local'){
@@ -506,27 +329,6 @@ class Plugin extends PluginBase
 		} 
 		return rmdir($dir); 
 	}
-
-	// public function limparDiretorio($pasta=false){
-	// 	 if(is_dir($pasta)) {
-	// 		  $diretorio = dir($pasta);
-
-	// 		  while($arquivo = $diretorio->read())
-	// 		  {
-	// 			   if(($arquivo != '.') && ($arquivo != '..'))
-	// 			   {
-	// 				//     unlink($pasta.$arquivo);
-	// 				    echo 'Arquivo '.$arquivo.' foi apagado com sucesso. <br />';
-	// 			   }
-	// 		  }
-
-	// 		  $diretorio->close();
-	// 	//  }
-	// 	//  else
-	// 	//  {
-	// 		//   echo 'A pasta não existe.';
-	// 	 }
-	// }
 
 	public function registerMarkupTags()
 	{

@@ -108,7 +108,7 @@ class OtimizarImage {
 
 		if($local == 'media'){
 			if(!$this->config['name_arq']) $new_name=str::slug($infos['filename']);
-			$new_name=str_replace(['%20',' '], ['-','-'], $infos['filename']);
+			$new_name=str::slug($infos['filename']).'.'.$infos['extension'];
 			$file->setRename(mb_strtolower($new_name, 'UTF-8'));
 		}
 
