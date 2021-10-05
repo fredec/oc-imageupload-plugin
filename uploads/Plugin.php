@@ -189,6 +189,9 @@ class Plugin extends PluginBase
 
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
 			$info=pathinfo($filePath);
+			if(strpos("[".$filePath."]", "uploaded-files/")){
+				if($info['basename'] != str::slug($info['basename'])) return;
+			}
 			$ext=$info['extension'];
 			if((isset($this->config['disabled']) and $this->config['disabled']) || !$this->veri_extension_image($ext)) return;
 
