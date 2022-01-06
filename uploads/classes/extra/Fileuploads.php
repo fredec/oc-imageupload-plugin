@@ -12,6 +12,7 @@ use Exception;
 use October\Rain\Database\Attach\Resizer;
 use Gregwar\Image\Image;
 use System\Classes\MediaLibrary;
+use Diveramkt\Uploads\Models\Settings;
 
 /**
  * File attachment model
@@ -51,7 +52,7 @@ class Fileuploads extends Model
     ];
 
     protected $filesave='', $folder='', $link_image=null, $file_name='', $disk_name='', $success=false, $file_insert=false, $infos_results=[];
-    public $resize_width='auto', $max_width=null, $max_height=null, $resize_height='auto', $resize_options=[];
+    public $resize_width='auto', $max_width=null, $tinypng_key=null, $max_height=null, $resize_height='auto', $resize_options=[], $settings=null;
 
     /**
      * @var array The attributes that aren't mass assignable.
@@ -98,6 +99,13 @@ class Fileuploads extends Model
     // Constructors
     //
 
+    public function setSettings($settings=false){
+        if($settings) $this->settings=$settings;
+    }
+    public function getSettings(){
+        if(!$this->settings) $this->settings=Settings::instance();
+        return $this->settings;
+    }
 
     public function setFolder($folder=false, $link_image=false){
         if($folder) $this->folder=trim(str_replace(' /','',' '.$folder));
@@ -909,10 +917,8 @@ class Fileuploads extends Model
         if (!$this->isLocalStorage()) {
 
             // return $this->copyLocalToStorage($sourcePath, $this->filesave);
-
-            $sourcePath=$this->resizeActive($sourcePath);
-            $info1=pathinfo($sourcePath); $info2=pathinfo($this->filesave);
-            
+            $sourcePath=$this->activeOtimizacoes($sourcePath);
+            // $info1=pathinfo($sourcePath); $info2=pathinfo($this->filesave);
             // if($info2['basename'] != $info1['basename']) $this->filesave=str_replace($info2['basename'], $info1['basename'], $this->filesave);
 
             if($this->copyLocalToStorage($sourcePath, $this->filesave)){
@@ -943,26 +949,19 @@ class Fileuploads extends Model
             trigger_error(error_get_last(), E_USER_WARNING);
         }
 
+        // $texto=json_encode(pathinfo(url($this->filesave)));
+        // $arquivo = "meu_arquivo.txt";
+        // $fp = fopen($arquivo, "w+");
+        // fwrite($fp, $texto);
+        // fclose($fp);
 
-        if(str_replace(url('/').'/', '', $sourcePath) != $this->filesave){
+        if($sourcePath != url($this->filesave)){
             // MediaLibrary::instance()->moveFile( str_replace('%20', ' ', $sourcePath), $this->filesave );
-
-            $ori=str_replace(array('/http','%20',url('/')), array('http',' ',''), $sourcePath);
-            if(FileHelper::copy($ori, $this->filesave)) FileHelper::delete($ori);
-            
-            // if(FileHelper::copy($sourcePath, $this->filesave)) FileHelper::delete($ori);
-            // else rename($ori, $this->filesave);
             // Storage::move($ori, $this->filesave);
-
-            // if(strpos("[".$sourcePath."]", " ")){
-            //     $sourcePath=str_replace('/http', 'http', $sourcePath);
-            //     MediaLibrary::instance()->moveFile( $sourcePath, $this->filesave );
-            // }else{
-            // if(FileHelper::copy($sourcePath, $this->filesave)) FileHelper::delete(str_replace(url('/').'/', '', $sourcePath));
-            //     elseif(@!rename($sourcePath, $this->filesave)) return false;
-            // }
+            $ori=trim(str_replace(['/http','%20',url('/').'/'], ['http',' ',''], ' '.$sourcePath));
+            if(FileHelper::copy($ori, $this->filesave)) FileHelper::delete($ori);
         }
-        $this->filesave=$this->resizeActive($this->filesave);
+        $this->filesave=$this->activeOtimizacoes($this->filesave);
         $this->success=true;
         return true;
     }
@@ -975,6 +974,7 @@ class Fileuploads extends Model
     // }
 
 
+    public function setKeyTinypng($key=false){ $this->tinypng_key=$key; }
     public function maxWidth($width=null){ $this->max_width=$width; }
     public function maxHeight($height=null){ $this->max_height=$height; }
     public function resizeOptions($width='auto', $height='auto', $options=[]){
@@ -982,21 +982,28 @@ class Fileuploads extends Model
         $this->resize_height=$height;
         $this->resize_options=$options;
     }
+
+    protected function activeOtimizacoes($file){
+        $file=$this->resizeActive($file);
+        $this->optimizeTiny($file);
+        return $file;
+    }
     protected function resizeActive($file){
         $options=$this->resize_options;
         $width=$this->resize_width;
         $height=$this->resize_height;
 
         $size = getimagesize($file);
+
         if($this->max_width && $size[0] > $this->max_width && $size[0] > $size[1]) $width=$this->max_width;
         if($this->max_height && $size[1] > $this->max_height) $height=$this->max_height;
-        
+
         if(isset($size[0]) && $width>$size[0]) $width=$size[0];
         if(isset($size[1]) && $height>$size[1]) $height=$size[1];
 
+        // if($width == 'auto' && $height == 'auto') return $file;
         return $this->resize($file, $width, $height, $options);
     }
-
     public function resize($file=false, $width='auto', $height='auto', $options=[]){
         // $options['quality']=80; // $options['compress']=true; // $options['extension']='jpg';
         if(!isset($options['quality'])) $options['quality']=90;
@@ -1020,6 +1027,9 @@ class Fileuploads extends Model
 
             $rotate=$this->correctOrientation($file);
             if($rotate) $image->rotate($rotate);
+
+            $filesize=filesize($file);
+            if($filesize < 50000 && $options['quality'] > 70) $options['quality']='auto';
             $image->save($new,$ext,$options['quality']);
 
             // Resizer::open($file)
@@ -1030,6 +1040,29 @@ class Fileuploads extends Model
             $this->setInfosResults($new, $image);
             return $new;
         }else $this->setInfosResults($file);
+    }
+    public function optimizeTiny($path_image){
+// ///////PASSAR IMAGEM NO TINYPNG PARA OTIMIZAR
+        if($this->tinypng_key){
+            $this->getSettings();
+            if(!isset($this->settings->mes_tinypng)) $this->settings->mes_tinypng=date('mY');
+            if(!isset($this->settings->count_tinypng) || !is_numeric($this->settings->count_tinypng)) $this->settings->count_tinypng=0;
+
+            if($this->settings->count_tinypng < 500 || $this->settings->mes_tinypng != date('mY')){
+                // $api_key='mLM462vSbljMXWLkwwBNJ4GYBgdZ6VTv';
+                \Tinify\setKey($this->tinypng_key);
+
+                $source = \Tinify\fromFile($path_image);
+                $compressionsThisMonth = \Tinify\compressionCount();
+                if($compressionsThisMonth < 500) $source->toFile($path_image);
+                $compressionsThisMonth = \Tinify\compressionCount();
+
+                $this->settings->mes_tinypng=date('mY');
+                $this->settings->count_tinypng=$compressionsThisMonth;
+                $this->settings->save();
+            }
+        }
+            // ///////PASSAR IMAGEM NO TINYPNG PARA OTIMIZAR
     }
 
     public function correctOrientation($imagem=false){

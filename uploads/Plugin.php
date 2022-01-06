@@ -83,6 +83,13 @@ class Plugin extends PluginBase
 	}
 
 	public function boot(){
+		// $settings=\Diveramkt\Uploads\Models\Settings::instance();
+		// $settings->mes_tinypng=date('mY');
+		// $settings->save();
+		// echo '<pre>';
+		// print_r($settings);
+		// echo '</pre>';
+
 		$class=get_declared_classes();
 
 		Event::listen('backend.page.beforeDisplay', function($controller, $action, $params) {
@@ -164,7 +171,7 @@ class Plugin extends PluginBase
 					$model->disk_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->disk_name);
 					$model->file_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->file_name);
 
-					$model->content_type=$retorno['mime_type'];
+					if(isset($retorno['mime_type'])) $model->content_type=$retorno['mime_type'];
 
 					$filesize=false;
 					if(isset($retorno['filesize']) && $retorno['filesize']) $filesize=$retorno['filesize'];
@@ -241,58 +248,31 @@ class Plugin extends PluginBase
 			'copyname' => function($path=false, $nome=false){
 				return $path;
 			},
+			// 'watermark' => function($path=false, $pasta_interna=false){},
 			'marcaDagua' => function($path=false, $pasta_interna=false){
-				return $path;
-			// |marcaDagua()
-				if(!strpos("[".$path."]", "/storage/")) return $path;
-				$exp=explode('/', $path);
-				$arquivo=end($exp);
+				//utilizar: resize|marcaDagua
+				$settings=Settings::instance();
+				if(!strpos("[".$path."]", "storage/app/uploads/") || !$settings->enabled_marca || !$settings->imagem_marca->path) return $path;
+				$copy=trim(str_replace(' /storage', ' storage', ' '.$path));
+				$infos=pathinfo($copy);
+				$destinationPath=str_replace(url('/').'/', '', $infos['dirname'].'/'.Str::slug($settings->imagem_marca->file_name));
 
-
-				$settings_upload = \Diveramkt\Uploads\Models\Settings::instance();
-				if(!$settings_upload->enabled_marca) return $path;
-				// opacity_marca
-				// proporcao_marca
-				// espacamento_marca
-				// imagem_marca
-
-				$exp=explode('.', $arquivo);
-				$name=$exp[0];
-				$ext=end($exp);
-				$new_name=$name.'.'.$ext;
-
-				if(!$pasta_interna) $pasta='marcaDagua';
-				else $pasta=$pasta_interna;
-				$path_new=str_replace($arquivo, $pasta, $path);
-				$path_new=explode('/storage/', $path_new); $http=$path_new[0]; $path_new=end($path_new); $path_new='storage/'.$path_new;
-
-				// $options=$settings_upload->posicao_horizonal.$settings_upload->posicao_vertical.$settings_upload->opacity_marca.$settings_upload->proporcao_marca.$settings_upload->espacamento_marca;
-				$options=$settings_upload->atualizacao_marca;
-
-				if(!file_exists($path_new.'/'.$options)) if(file_exists($path_new)) $this->delTree($path_new);
-				$path_new.='/'.$options;
-				$path_new.='/'.$new_name;
-
-				// $path_new=str_replace($arquivo, $pasta.'/'.$new_name, $path);
-
-				if(file_exists($path_new)) return $http.'/'.$path_new;
-
-				$path_new=$this->gerar_pastas_image($path, $path_new);
-
-				$marcar=false;
-				if(!file_exists($path_new)){
-					$marcar=true;
-					copy($path, $path_new);
+				if(file_exists($destinationPath.'/'.$infos['basename'])) return $destinationPath.'/'.$infos['basename'];
+				if (
+					$destinationPath && 
+					!FileHelper::isDirectory($destinationPath) &&
+					!FileHelper::makeDirectory($destinationPath, 0777, true, true) &&
+					!FileHelper::isDirectory($destinationPath)
+				) {
+					trigger_error(error_get_last(), E_USER_WARNING);
 				}
-
-
-				if($marcar){
+				if(FileHelper::copy($copy, $destinationPath.'/'.$infos['basename'])){
+					$path=$destinationPath.'/'.$infos['basename'];
 					$image=new OtimizarImage();
-					$path_new=$image->marca_dagua($path_new);
+					$path=$image->marca_dagua($path);
 				}
+				return $path;
 
-				// echo '<img src="'.$http.'/'.$path_new.'" width="100" />';
-				return $http.'/'.$path_new;
 
 				// return $settings_upload->imagem_marca->path;
 				// return $settings_upload->posicao_horizonal.$settings_upload->posicao_vertical.$settings_upload->opacity_marca.$settings_upload->proporcao_marca.$settings_upload->espacamento_marca;

@@ -131,15 +131,33 @@ tabs:
             tab: 'Marca D''água'
         api_tiny_enabled:
             label: 'Tinypng habilitado'
-            span: full
+            span: auto
+            type: switch
+            default: 0
+            tab: 'API TinyPng'
+        api_tiny_enabled_png:
+            label: 'Somente em PNG'
+            comment: 'Otimização habilitada somente quando a imagem for mantida em png, desabilitado otimiza para todas'
+            span: auto
             type: switch
             default: 0
             tab: 'API TinyPng'
         api_tiny:
             label: 'Key Tinypng'
-            span: auto
+            span: full
             type: text
             tab: 'API TinyPng'
+        # mes_tinypng:
+        #     label: 'Período atual'
+        #     span: auto
+        #     type: text
+        #     tab: 'API TinyPng'
+        # count_tinypng:
+        #     label: 'Quantidade de otimizações'
+        #     span: auto
+        #     type: text
+        #     default: 0
+        #     tab: 'API TinyPng'
 # secondaryTabs:
 #     fields:
 #         redirect_www:

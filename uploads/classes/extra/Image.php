@@ -88,13 +88,13 @@ class Image
     public function checkFile($path=false, $externo=0){
         if(!$path) $path=$this->filePath;
         if($this->s3 || $externo){
-         $response = Http::get($path);
-         if($response->code == 200) return true;
-         else return false;
-     }elseif (is_file($path)) return true;
+           $response = Http::get($path);
+           if($response->code == 200) return true;
+           else return false;
+       }elseif (is_file($path)) return true;
 
-     return false;
- }
+       return false;
+   }
 
     /**
      * Resizes an Image
@@ -131,17 +131,17 @@ class Image
         // echo 'teste';
         // If extension is auto, set the actual extension
         if (strtolower($this->options['extension']) == 'auto') {
-           $this->options['extension'] = pathinfo($this->filePath)['extension'];
-       }
+         $this->options['extension'] = pathinfo($this->filePath)['extension'];
+     }
 
         // Set a disk name, this enables caching
-       $this->file->disk_name = $this->diskName();
+     $this->file->disk_name = $this->diskName();
 
         // Set the thumbfilename to save passing variables to many functions
-       $this->thumbFilename = $this->getThumbFilename($width, $height);
+     $this->thumbFilename = $this->getThumbFilename($width, $height);
 
         // If the image is cached, don't try resized it.
-       if (!$this->isImageCached()) {
+     if (!$this->isImageCached()) {
 
             // Set the file to be created from another file
         if($this->s3) $this->file->fromUrl($this->filePath);
@@ -323,6 +323,7 @@ protected function copyRename($public=false){
         }
 
         if (!isset($options['rename'])) $options['rename'] = false;
+        // if (!isset($options['watermark'])) $options['watermark'] = 0;
 
         return $options;
     }

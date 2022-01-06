@@ -21,53 +21,23 @@ use Diveramkt\Uploads\Classes\Extra\Fileuploads;
 
 class OtimizarImage {
 
-	// public $compression=80;
-	// public $tamanho_max=3000;
-	// public $converter_jpg=false;
-	// public $converter_ext=false;
-	// public $name_arq=false;
-	// public $api_tiny=false;
-	// public $rename=true;
-	// public $imagem_marca=false;
-
-	// public $compression_small_size=10000;
-	// public $compression_small=80;
 	public $settings='';
 	public $config=[];
 
 	function __construct($config=false)
 	{
 
-		// $dados2=Settings::first();
 		$this->settings = Settings::instance();
-		// $dados = Db::table('system_settings')->where('item',$dados2->settingsCode)->first();
-		// if(!isset($dados->value)) $dados=new stdclass();
-		// else $dados=json_decode($dados->value);
-
-		// $default=[
-		// 	'compression' => $this->compression,
-		// 	'tamanho_max' => $this->tamanho_max,
-		// 	// 'converter_jpg' => $this->converter_jpg,
-		// 	'converter_ext' => $this->converter_ext,
-		// 	'name_arq' => $this->name_arq,
-		// 	'api_tiny' => $this->api_tiny,
-		// 	'rename' => $this->rename,
-		// 	'imagem_marca' => $this->imagem_marca,
-		// 	// 'compression_small_size' => $this->compression_small_size,
-		// 	// 'compression_small' => $this->compression_small,
-		// ];
 		$default=[
 			'compression' => 90,
 			'tamanho_max' => 3000,
-			// 'converter_jpg' => false,
 			'converter_ext' => false,
 			'name_arq' => false,
 			'api_tiny' => false,
 			'rename' => true,
 			'imagem_marca' => false,
-			// 'compression_small_size' => $this->compression_small_size,
-			// 'compression_small' => $this->compression_small,
 		];
+		if(!$config) $config=[];
 		$config=array_merge($default, $config);
 
 		foreach ($config as $key => $value) {
@@ -78,11 +48,6 @@ class OtimizarImage {
 		}
 
 	}
-
-	// static public function isExterno(){
-	// 	if(config('cms.storage.uploads.disk') != 'local') return true;
-	// 	else return false;
-	// }
 
 	public function base_link_file($url, $folder='uploads'){
 		if(config('cms.storage.'.$folder.'.disk') == 'local') return urldecode(parse_url($url, PHP_URL_PATH));
@@ -101,6 +66,7 @@ class OtimizarImage {
 	public function otimizar($url=false, $link=false, $local=false){
 		$path=config('cms.storage.'.$local.'.path');
 		$file = new Fileuploads;
+		$file->setSettings($this->settings);
 		$infos=pathinfo($link);
 
 		if(!$url || !$file->checkFile($url)) return false;
@@ -115,11 +81,24 @@ class OtimizarImage {
 		$options=[
 			'quality' => $this->config['compression'],
 			'compress' => true,
+			'extension' => $infos['extension'],
 		];
 		if($this->config['converter_ext']) $options['extension']=$this->config['converter_ext'];
 
+		// $options['extension']
+		// $texto=json_encode(pathinfo(url($this->filesave)));
+		// $texto='extensão: '.$options['extension'];
+  //       $arquivo = "meu_arquivo.txt";
+  //       $fp = fopen($arquivo, "w+");
+  //       fwrite($fp, $texto);
+  //       fclose($fp);
+
 		$file->resizeOptions('auto','auto',$options);
 		$file->maxWidth($this->config['tamanho_max']);
+
+		if(isset($this->settings->api_tiny_enabled) && $this->settings->api_tiny_enabled && isset($this->settings->api_tiny) && !empty($this->settings->api_tiny) && $this->settings->api_tiny){
+			if(!$this->settings->api_tiny_enabled_png || ($this->settings->api_tiny_enabled_png && $options['extension'] == 'png')) $file->setKeyTinypng($this->settings->api_tiny);
+		}
 
 		if($file->isExterno()) $file->fromUrl($url);
 		else $file->fromFile($url);
@@ -132,33 +111,6 @@ class OtimizarImage {
 			return $result;
 		}else return false;
 
-	}
-
-
-	public function optimizeTiny($path_image){
-// ///////PASSAR IMAGEM NO TINYPNG PARA OTIMIZAR
-		if(isset($this->settings->api_tiny_enabled) && $this->settings->api_tiny_enabled && isset($this->api_tiny) && !empty($this->api_tiny) && $this->api_tiny && $ext == 'png'){
-			$informacoes=Informacoes::where('id',1)->first();
-			if(!isset($informacoes['id'])){
-				Informacoes::insert( ['mes_tinypng' => date('mY'), 'count_tinypng' => 0] );
-				$informacoes=array();
-				$informacoes['mes_tinypng']=date('mY');
-				$informacoes['count_tinypng']=0;
-			}
-
-			if($informacoes['count_tinypng'] < 500 || $informacoes['mes_tinypng'] != date('mY')){
-				// $api_key='mLM462vSbljMXWLkwwBNJ4GYBgdZ6VTv';
-				$api_key=$this->api_tiny;
-				\Tinify\setKey($api_key);
-
-				$source = \Tinify\fromFile($path_image);
-				$compressionsThisMonth = \Tinify\compressionCount();
-				if($compressionsThisMonth <= 500) $source->toFile($path_image);
-
-				Informacoes::where('id', 1)->update(['count_tinypng' => $compressionsThisMonth, 'mes_tinypng' => date('mY')]);
-			}
-		}
-			// ///////PASSAR IMAGEM NO TINYPNG PARA OTIMIZAR
 	}
 
 
@@ -183,8 +135,8 @@ class OtimizarImage {
 	}
 
 	public function marca_dagua($image) {
-		if(!$this->imagem_marca) return;
-		$imagem_marca=$this->imagem_marca;
+		if(!$this->config['imagem_marca']) return;
+		$imagem_marca=$this->config['imagem_marca'];
 
 		$marca=$imagem_marca->getPath();
 
