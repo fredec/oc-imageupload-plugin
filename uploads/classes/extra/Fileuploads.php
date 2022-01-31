@@ -949,16 +949,13 @@ class Fileuploads extends Model
             trigger_error(error_get_last(), E_USER_WARNING);
         }
 
-        // $texto=json_encode(pathinfo(url($this->filesave)));
-        // $arquivo = "meu_arquivo.txt";
-        // $fp = fopen($arquivo, "w+");
-        // fwrite($fp, $texto);
-        // fclose($fp);
 
         if($sourcePath != url($this->filesave)){
             // MediaLibrary::instance()->moveFile( str_replace('%20', ' ', $sourcePath), $this->filesave );
             // Storage::move($ori, $this->filesave);
-            $ori=trim(str_replace(['/http','%20',url('/').'/'], ['http',' ',''], ' '.$sourcePath));
+
+            // $ori=trim(str_replace(['/http','%20',url('/').'/'], ['http',' ',''], ' '.$sourcePath));
+            $ori=trim(str_replace(['/http',url('/').'/'], ['http',''], ' '.$sourcePath));
             if(FileHelper::copy($ori, $this->filesave)) FileHelper::delete($ori);
         }
         $this->filesave=$this->activeOtimizacoes($this->filesave);
