@@ -646,7 +646,7 @@ class Fileuploads extends Model
         $defaultOptions = [
             'mode'      => 'auto',
             'offset'    => [0, 0],
-            'quality'   => 90,
+            'quality'   => 80,
             'sharpen'   => 0,
             'interlace' => false,
             'extension' => 'auto',
@@ -992,7 +992,8 @@ class Fileuploads extends Model
 
         $size = getimagesize($file);
 
-        if($this->max_width && $size[0] > $this->max_width && $size[0] > $size[1]) $width=$this->max_width;
+        // && $size[0] > $size[1]
+        if($this->max_width && $size[0] > $this->max_width) $width=$this->max_width;
         if($this->max_height && $size[1] > $this->max_height) $height=$this->max_height;
 
         if(isset($size[0]) && $width>$size[0]) $width=$size[0];
@@ -1003,7 +1004,7 @@ class Fileuploads extends Model
     }
     public function resize($file=false, $width='auto', $height='auto', $options=[]){
         // $options['quality']=80; // $options['compress']=true; // $options['extension']='jpg';
-        if(!isset($options['quality'])) $options['quality']=90;
+        if(!isset($options['quality'])) $options['quality']=80;
 
         if($file && ($width != 'auto' || $height != 'auto' || count($options) > 0)){
 
@@ -1021,6 +1022,7 @@ class Fileuploads extends Model
 
             $ext=$info['extension'];
             if(isset($options['extension'])) $ext=$options['extension'];
+            if($ext == 'jpeg') $ext='jpg';
 
             $rotate=$this->correctOrientation($file);
             if($rotate) $image->rotate($rotate);
@@ -1029,9 +1031,12 @@ class Fileuploads extends Model
             if($filesize < 50000 && $options['quality'] > 70) $options['quality']='auto';
             $image->save($new,$ext,$options['quality']);
 
-            // Resizer::open($file)
-            // ->resize($width, $height, $options)
-            // ->save($new);
+            if(($ext == 'jpg' || $ext == 'jpeg') && $options['quality'] > 0){
+                // https://github.com/gumlet/php-image-resize
+                $image2 = new \Gumlet\ImageResize($new);
+                $image2->quality_jpg=$options['quality'];
+                $image2->save($new);
+            }
 
             if($file != $new) FileHelper::delete($file);
             $this->setInfosResults($new, $image);

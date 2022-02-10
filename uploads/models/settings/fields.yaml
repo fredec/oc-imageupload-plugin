@@ -19,7 +19,7 @@ tabs:
             type: number
             tab: Configurações
         compression:
-            label: 'Qualidade de compressão (Padrão: 90)'
+            label: 'Qualidade de compressão (Padrão: 80)'
             span: auto
             type: number
             tab: Configurações

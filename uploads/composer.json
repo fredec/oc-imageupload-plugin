@@ -1,5 +1,6 @@
 {
 	"require": {
-		"gregwar/image": "2.*"
+		"gregwar/image": "2.*",
+		"gumlet/php-image-resize": "2.0.*"
 	}
 }

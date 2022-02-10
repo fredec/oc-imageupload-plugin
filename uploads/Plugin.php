@@ -83,12 +83,23 @@ class Plugin extends PluginBase
 	}
 
 	public function boot(){
-		// $settings=\Diveramkt\Uploads\Models\Settings::instance();
-		// $settings->mes_tinypng=date('mY');
-		// $settings->save();
-		// echo '<pre>';
-		// print_r($settings);
-		// echo '</pre>';
+
+		// $src='teste/original.jpeg';
+		// $des='teste/teste.jpg';
+		// // $size=filesize($src);
+		// // print_r($size);
+		// // echo '<br/>';
+		// // $size=filesize($des);
+		// // print_r($size);
+
+		// $image=new \Gregwar\Image\Image($src);
+		// $image->save($des,'jpg',80);
+
+		// $image = new \Gumlet\ImageResize($des);
+		// // $image->scale(50);
+		// $image->quality_jpg=80;
+		// $image->save($des);
+		// $image = new \ImageResize($src);
 
 		$class=get_declared_classes();
 
