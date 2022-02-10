@@ -1,6 +1,7 @@
 {
 	"require": {
 		"gregwar/image": "2.*",
-		"gumlet/php-image-resize": "2.0.*"
+		"gumlet/php-image-resize": "2.0.*",
+		"tinify/tinify": "*"
 	}
 }

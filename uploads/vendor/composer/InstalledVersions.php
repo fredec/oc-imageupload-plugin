@@ -71,6 +71,15 @@ private static $installed = array (
       ),
       'reference' => '5ef461c53241933a3e14e4582a9d2884b8261213',
     ),
+    'tinify/tinify' => 
+    array (
+      'pretty_version' => '1.5.3',
+      'version' => '1.5.3.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'f971971ca4b4f0185277a81ba695640d47833852',
+    ),
   ),
 );
 private static $canGetVendors;
