@@ -1012,6 +1012,7 @@ class Fileuploads extends Model
             if(isset($options['extension'])){
                 $new=$info['dirname'].'/'.$info['filename'].'.'.$options['extension'];
             }else $new=$file;
+            $new=$file;
             $new=str_replace(['%20',' ','.jpeg'], ['-','-','.jpg'], $new);
 
             if($height == 'auto') $height=false;
@@ -1037,6 +1038,12 @@ class Fileuploads extends Model
                 $image2->quality_jpg=$options['quality'];
                 $image2->save($new);
             }
+
+            // \October\Rain\Database\Attach\Resizer
+            // \Resizer
+            // $image_ = \October\Rain\Database\Attach\Resizer::open($new);
+            // $image_ = Resizer::open($new);
+            // $image_->save($new);
 
             if($file != $new) FileHelper::delete($file);
             $this->setInfosResults($new, $image);

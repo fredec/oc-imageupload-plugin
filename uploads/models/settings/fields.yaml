@@ -1,6 +1,6 @@
 fields:
     disabled:
-        label: 'Desabilitar'
+        label: Desabilitar
         span: full
         type: switch
         tab: Configurações
@@ -25,9 +25,19 @@ tabs:
             tab: Configurações
         converter_webp:
             label: 'Converter imagens para WEBP no resize'
-            span: full
+            span: auto
             comment: 'Verifica se o navegador suporta a extensão webp e converte automaticamente todas as imagens que for utilizado |resize'
             type: switch
+            tab: 'Converter extensão'
+        converter_webp_upload:
+            label: 'Upload das imagens WEBP:'
+            span: auto
+            type: dropdown
+            options:
+                0: Manter
+                jpg: 'Converter todas para jpg'
+                png: 'Converter todas para PNG'
+            default: 0
             tab: 'Converter extensão'
         resize_max_width:
             label: 'Resize max height width'
@@ -35,26 +45,15 @@ tabs:
             comment: 'As imagens com |resize terão a altura e largura máxima original da imagem quanto o mode crop não estiver habilitado'
             type: switch
             tab: 'Converter extensão'
-        # converter_jpg:
-        #     label: 'Converter imagens para JPG'
-        #     span: left
-        #     type: switch
-        #     tab: 'Converter extensão'
         converter_ext:
             label: 'Converter extensão das imagens'
             span: left
             type: dropdown
-            emptyOption: 'Desativado'
+            emptyOption: Desativado
             options:
-                jpg: 'JPG'
-                webp: 'WEBP'
+                jpg: JPG
+                webp: WEBP
             tab: 'Converter extensão'
-        # buscar_fields:
-        #     label: 'Buscar Campos de imagens'
-        #     span: full
-        #     type: partial
-        #     path: $/diveramkt/uploads/models/settings/_buscar_fields.htm
-        #     tab: 'Converter extensão'
         compression_small_size:
             label: 'Size imagens pequenas (Padrão: 50 Kbs)'
             span: left
@@ -76,13 +75,8 @@ tabs:
         atualizacao_marca:
             label: 'Marca Atualizada'
             span: right
-            # disabled: 0
-            # readOnly: 0
-            # hidden: 1
             type: text
             hidden: 1
-            # type: partial
-            # path: ~\plugins\diveramkt\uploads\models\settings\_data_marca.htm
             tab: 'Marca D''água'
         posicao_horizonal:
             label: 'Posição horizontal'
@@ -147,31 +141,23 @@ tabs:
             span: full
             type: text
             tab: 'API TinyPng'
-        # mes_tinypng:
-        #     label: 'Período atual'
-        #     span: auto
-        #     type: text
-        #     tab: 'API TinyPng'
-        # count_tinypng:
-        #     label: 'Quantidade de otimizações'
-        #     span: auto
-        #     type: text
-        #     default: 0
-        #     tab: 'API TinyPng'
-# secondaryTabs:
-#     fields:
-#         redirect_www:
-#             label: 'Redirect no_www para www'
-#             span: auto
-#             options:
-#                 0: Desativado
-#                 301: '301 - Permanente'
-#                 302: '302 - Temporário'
-#             showSearch: true
-#             type: dropdown
-#             tab: Redirects
-#         sub_dominios:
-#             label: 'Prefixos dos Sub domínios'
-#             span: auto
-#             type: textarea
-#             tab: Redirects
+        allowed_files:
+            label: 'Arquivos permitidos'
+            mode: string
+            comment: 'Permissões quando for campo para arquivos'
+            separator: comma
+            customTags: true
+            useKey: false
+            span: full
+            type: taglist
+            tab: Permissões
+        allowed_images:
+            label: 'Imagens permitidos'
+            mode: string
+            comment: 'Permissões quando for campo para imagens'
+            separator: comma
+            customTags: true
+            useKey: false
+            span: full
+            type: taglist
+            tab: Permissões

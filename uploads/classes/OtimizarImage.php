@@ -85,13 +85,7 @@ class OtimizarImage {
 		];
 		if($this->config['converter_ext']) $options['extension']=$this->config['converter_ext'];
 
-		// $options['extension']
-		// $texto=json_encode(pathinfo(url($this->filesave)));
-		// $texto='extensão: '.$options['extension'];
-  //       $arquivo = "meu_arquivo.txt";
-  //       $fp = fopen($arquivo, "w+");
-  //       fwrite($fp, $texto);
-  //       fclose($fp);
+		if($infos['extension'] == 'webp' && !is_numeric($this->settings->converter_webp_upload)) $options['extension']=$this->settings->converter_webp_upload;
 
 		$file->resizeOptions('auto','auto',$options);
 		$file->maxWidth($this->config['tamanho_max']);

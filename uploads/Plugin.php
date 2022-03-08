@@ -33,6 +33,7 @@ use Request;
 use System\Classes\PluginManager;
 use Http;
 use str;
+use Config;
 
 // use Arcane\Seo\Models\Settings SettingsArcane;
 
@@ -64,7 +65,7 @@ class Plugin extends PluginBase
 
 	public function veri_extension_image($ext){
 		$ext=mb_strtolower($ext, 'UTF-8');
-		if($ext == 'jpeg' or $ext == 'jpg' or $ext == 'png') return true;
+		if($ext == 'jpeg' or $ext == 'jpg' or $ext == 'png' or $ext == 'webp') return true;
 		else false;
 	}
 
@@ -82,15 +83,23 @@ class Plugin extends PluginBase
 		}
 	}
 
-	public function boot(){
+	public $settings=false;
+	public function getSettings(){
+		if(!$this->settings) $this->settings=Settings::instance();
+		return $this->settings;
+	}
 
-		// $src='teste/original.jpeg';
-		// $des='teste/teste.jpg';
-		// // $size=filesize($src);
-		// // print_r($size);
-		// // echo '<br/>';
-		// // $size=filesize($des);
-		// // print_r($size);
+	public function boot(){
+		$settings=$this->getSettings();
+		// $extension_files=explode(',', $settings->allowed_files);
+
+		$filesAllow=[
+			'defaultExtensions' => explode(',', $settings->allowed_files),
+			'imageExtensions' => explode(',', $settings->allowed_images),
+		];
+		// $extension_image=['svg','jpg', 'jpeg', 'bmp', 'png', 'webp', 'gif'];
+		Config::set('cms.fileDefinitions', $filesAllow);
+
 
 		// $image=new \Gregwar\Image\Image($src);
 		// $image->save($des,'jpg',80);
@@ -142,8 +151,6 @@ class Plugin extends PluginBase
 		// //////////////GERENCIAMENTO NAS IMAGENS E ARQUIVOS NO MEDIA
 
 		\System\Models\File::extend(function($model) {
-
-
 			$model->bindEvent('model.afterCreate', function() use ($model) {
 		// $model->bindEvent('model.afterUpdate', function() use ($model) {
 				if((isset($this->config['disabled']) and $this->config['disabled']) || !strpos("[".$model->path."]", ".") || !$this->veri_extension_image($model->extension)) return;
@@ -207,6 +214,7 @@ class Plugin extends PluginBase
 
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
 			$info=pathinfo($filePath);
+
 			if(strpos("[".$filePath."]", "uploaded-files/")){
 				if($info['basename'] != str::slug($info['basename'])) return;
 			}
@@ -296,6 +304,8 @@ class Plugin extends PluginBase
 				return $http.'/'.$path_new;
 			},
 			'resize' => function($file_path, $width = false, $height = false, $options = []) {
+				$infos=pathinfo($file_path);
+				if($infos['extension'] == 'webp') return $file_path;
 				$image = new \Diveramkt\Uploads\Classes\Extra\Image($file_path);
 				return $image->resize($width, $height, $options);
 			},

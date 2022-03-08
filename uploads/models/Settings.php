@@ -41,4 +41,112 @@ class Settings extends Model
 		}
 	}
 
+	public function afterFetch(){
+		if(!$this->allowed_files) $this->allowed_files=implode(',', $this->getAllowedFilesOptions());
+		if(!$this->allowed_images) $this->allowed_images=implode(',', $this->getAllowedImagesOptions());
+	}
+
+	public function getAllowedImagesOptions(){
+		$extension=['svg','jpg', 'jpeg', 'bmp', 'png', 'webp', 'gif'];
+		return $extension;
+	}
+
+	public function getAllowedFilesOptions(){
+		$extension= [
+            // defaults
+			'json',
+			'js',
+			'map',
+			'ico',
+			'css',
+			'less',
+			'scss',
+			'ics',
+			'odt',
+			'doc',
+			'docx',
+			'ppt',
+			'pptx',
+			'pdf',
+			'swf',
+			'txt',
+			'xml',
+			'ods',
+			'xls',
+			'xlsx',
+			'eot',
+			'woff',
+			'woff2',
+			'ttf',
+			'flv',
+			'wmv',
+			'mp3',
+			'ogg',
+			'wav',
+			'avi',
+			'mov',
+			'mp4',
+			'mpeg',
+			'webm',
+			'mkv',
+			'rar',
+			'xml',
+			'zip',
+		];
+		$extension=array_merge($extension, $this->getAllowedImagesOptions());
+		return $extension;
+	}
+
+	// public function getAllowedFilesOptions(){
+	// 	$extension= [
+	// 		'json',
+ //            // defaults
+	// 		'jpg',
+	// 		'jpeg',
+	// 		'bmp',
+	// 		'png',
+	// 		'webp',
+	// 		'gif',
+	// 		'svg',
+	// 		'js',
+	// 		'map',
+	// 		'ico',
+	// 		'css',
+	// 		'less',
+	// 		'scss',
+	// 		'ics',
+	// 		'odt',
+	// 		'doc',
+	// 		'docx',
+	// 		'ppt',
+	// 		'pptx',
+	// 		'pdf',
+	// 		'swf',
+	// 		'txt',
+	// 		'xml',
+	// 		'ods',
+	// 		'xls',
+	// 		'xlsx',
+	// 		'eot',
+	// 		'woff',
+	// 		'woff2',
+	// 		'ttf',
+	// 		'flv',
+	// 		'wmv',
+	// 		'mp3',
+	// 		'ogg',
+	// 		'wav',
+	// 		'avi',
+	// 		'mov',
+	// 		'mp4',
+	// 		'mpeg',
+	// 		'webm',
+	// 		'mkv',
+	// 		'rar',
+	// 		'xml',
+	// 		'zip',
+	// 	];
+	// 	return $extension;
+	// }
+
 }
