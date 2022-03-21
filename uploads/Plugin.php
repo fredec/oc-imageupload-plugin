@@ -92,13 +92,14 @@ class Plugin extends PluginBase
 	public function boot(){
 		$settings=$this->getSettings();
 		// $extension_files=explode(',', $settings->allowed_files);
-
-		$filesAllow=[
-			'defaultExtensions' => explode(',', $settings->allowed_files),
-			'imageExtensions' => explode(',', $settings->allowed_images),
-		];
+		if($settings->allowed_files and $settings->allowed_images){
+			$filesAllow=[
+				'defaultExtensions' => explode(',', $settings->allowed_files),
+				'imageExtensions' => explode(',', $settings->allowed_images),
+			];
 		// $extension_image=['svg','jpg', 'jpeg', 'bmp', 'png', 'webp', 'gif'];
-		Config::set('cms.fileDefinitions', $filesAllow);
+			Config::set('cms.fileDefinitions', $filesAllow);
+		}
 
 
 		// $image=new \Gregwar\Image\Image($src);
@@ -305,7 +306,7 @@ class Plugin extends PluginBase
 			},
 			'resize' => function($file_path, $width = false, $height = false, $options = []) {
 				$infos=pathinfo($file_path);
-				if($infos['extension'] == 'webp') return $file_path;
+				if(isset($infos['extension']) && $infos['extension'] == 'webp') return $file_path;
 				$image = new \Diveramkt\Uploads\Classes\Extra\Image($file_path);
 				return $image->resize($width, $height, $options);
 			},

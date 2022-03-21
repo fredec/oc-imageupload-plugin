@@ -29,16 +29,16 @@ tabs:
             comment: 'Verifica se o navegador suporta a extensão webp e converte automaticamente todas as imagens que for utilizado |resize'
             type: switch
             tab: 'Converter extensão'
-        converter_webp_upload:
-            label: 'Upload das imagens WEBP:'
-            span: auto
-            type: dropdown
-            options:
-                0: Manter
-                jpg: 'Converter todas para jpg'
-                png: 'Converter todas para PNG'
-            default: 0
-            tab: 'Converter extensão'
+        # converter_webp_upload:
+        #     label: 'Upload das imagens WEBP:'
+        #     span: auto
+        #     type: dropdown
+        #     options:
+        #         0: Manter
+        #         jpg: 'Converter todas para jpg'
+        #         png: 'Converter todas para PNG'
+        #     default: 0
+        #     tab: 'Converter extensão'
         resize_max_width:
             label: 'Resize max height width'
             span: auto
