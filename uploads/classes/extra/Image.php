@@ -9,6 +9,8 @@ use Storage;
 // use Tinify\Tinify;
 // use Tinify\Source;
 use Cache;
+use Str;
+use Session;
 
 class Image
 {
@@ -55,6 +57,12 @@ class Image
 
         // Create a new file object
         $this->file = new File;
+        $this->setFilepath($filePath);
+    }
+
+
+    public function getFilepath(){ return $this->filePath; }
+    public function setFilepath($filePath = false){
         if($this->s3) $this->filePath=$filePath;
         else{
             if ($filePath instanceof File) {
@@ -88,13 +96,22 @@ class Image
     public function checkFile($path=false, $externo=0){
         if(!$path) $path=$this->filePath;
         if($this->s3 || $externo){
-           $response = Http::get($path);
-           if($response->code == 200) return true;
-           else return false;
-       }elseif (is_file($path)) return true;
+            // if(Session::has($this->cacheS3('checkFile'))) return Session::get($this->cacheS3('checkFile'));
+            if(Session::has($this->prepLink($path))) return Session::get($this->prepLink($path));
+            $response = Http::get($path);
+            if($response->code == 200){
+                // Session::put($this->cacheS3('checkFile'), 1, 999999999999999999);
+                Session::put($this->prepLink($path), 1, 999999999999999999);
+                return true;
+            }else{
+                // Session::put($this->cacheS3('checkFile'), 0, 999999999999999999);
+                Session::put($this->prepLink($path), 0, 999999999999999999);
+                return false;
+            }
+        }elseif (is_file($path)) return true;
 
-       return false;
-   }
+        return false;
+    }
 
     /**
      * Resizes an Image
@@ -108,8 +125,14 @@ class Image
     public function resize($width = false, $height = false, $options = [])
     {
 
+        // echo $this->cacheS3();
+        // if($this->s3) return $this->filePath;
+
         // Parse the default settings
         $this->options = $this->parseDefaultSettings($options);
+
+        // return $this->filePath;
+        // return $this->getCachedImagePath();
 
         if(isset($this->settings->resize_max_width) && $this->settings->resize_max_width && $this->options['mode'] != 'crop'){
             $cache_resize='getimagesize_'.$this->filePath;
@@ -124,42 +147,44 @@ class Image
 
         // Not a file? Display the not found image
         // if (!is_file($this->filePath)) {
-        if(!$this->checkFile()){
+        if(!$this->checkFile()) {
             return $this->notFoundImage($width, $height);
         }
 
-        // echo 'teste';
         // If extension is auto, set the actual extension
         if (strtolower($this->options['extension']) == 'auto') {
-         $this->options['extension'] = pathinfo($this->filePath)['extension'];
-     }
+           $this->options['extension'] = pathinfo($this->filePath)['extension'];
+       }
 
         // Set a disk name, this enables caching
-     $this->file->disk_name = $this->diskName();
+       $this->file->disk_name = $this->diskName();
 
         // Set the thumbfilename to save passing variables to many functions
-     $this->thumbFilename = $this->getThumbFilename($width, $height);
+       $this->thumbFilename = $this->getThumbFilename($width, $height);
 
         // If the image is cached, don't try resized it.
-     if (!$this->isImageCached()) {
-
+       if (!$this->isImageCached()) {
             // Set the file to be created from another file
-        if($this->s3) $this->file->fromUrl($this->filePath);
-        else $this->file->fromFile($this->filePath);
+           if($this->s3) $this->file->fromUrl($this->filePath);
+           else $this->file->fromFile($this->filePath);
 
             // Resize it
-        $thumb = $this->file->getThumb($width, $height, $this->options);
+           $thumb = $this->file->getThumb($width, $height, $this->options);
 
             // Not a gif file? Compress with tinyPNG
             // if ($this->isCompressionEnabled()) {
             //     $this->compressWithTinyPng();
             // }
 
-        if(!$this->s3 && !$this->isS3()){
+           if(!$this->s3 && !$this->isS3()){
             // Touch the cached image with the original mtime to align them
             touch($this->getCachedImagePath(), filemtime($this->filePath));
             $this->deleteTempFile();
             // touch($this->getCachedImagePath(), strtotime(date('Y-m-d H:i:s')));
+        }else{
+            // Cache::put($this->cacheS3(), 1, 999999999999999999);
+            Session::put($this->cacheS3(), 1);
+            $this->saveDirectory();
         }
     }
 
@@ -228,10 +253,36 @@ protected function copyRename($public=false){
     return false;
 }
 
+public function prepLink($link=''){
+    return json_encode(Str::slug($link));
+}
+public function cacheS3($type=''){
+    return json_encode(Str::slug($this->getCachedImagePath()).'-1'.$type);
+}
+public function path_check(){
+    return 'storage/app/resize_upload/'.$this->getPartitionDirectory().$this->thumbFilename;
+}
+public function saveDirectory(){
+    // $destinationPath=$this->path_check();
+            // if(!FileHelper::isDirectory($destinationPath)){
+                // mkdir("/path/to/my/dir", 0700);
+                // FileHelper::makeDirectory($destinationPath, 0777, true, true);
+            // }
+    $destinationPath=$this->path_check();
+    $exp=explode('/', $destinationPath);
+    $path='';
+    foreach ($exp as $key => $value) {
+        if($path) $path.='/';
+        $path.=$value;
+        if(!FileHelper::isDirectory($path)) mkdir($path, 0777);
+    }
+}
+
     /**
      * Gets the path for the thumbnail
      * @return string
      */
+
     public function getCachedImagePath($public = false)
     {
 
@@ -405,7 +456,13 @@ protected function copyRename($public=false){
     {
 
         if($this->isS3()){
-            if($this->checkFile($this->getCachedImagePath(),1)) return true;
+            // if($this->checkFile($this->getCachedImagePath(),1)) return true;
+            // else return false;
+
+            $destinationPath=$this->path_check();
+            if(Session::has($this->cacheS3()) || FileHelper::isDirectory($destinationPath)) return true;
+            // if(FileHelper::exists($this->getCachedImagePath())) return true;
+            // if(Cache::has($this->cacheS3())) return true;
             else return false;
         }else{
 

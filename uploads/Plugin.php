@@ -307,11 +307,16 @@ class Plugin extends PluginBase
 			'resize' => function($file_path, $width = false, $height = false, $options = []) {
 				$infos=pathinfo($file_path);
 				if(isset($infos['extension']) && $infos['extension'] == 'webp') return $file_path;
-				$image = new \Diveramkt\Uploads\Classes\Extra\Image($file_path);
-				return $image->resize($width, $height, $options);
+				if(!$this->image_resize){
+					$this->image_resize=new \Diveramkt\Uploads\Classes\Extra\Image($file_path);
+				}else $this->image_resize->setFilepath($file_path);
+
+				return $this->image_resize->resize($width, $height, $options);
 			},
 		];
 	}
+	public $image_resize=null;
+	
 	public function gerar_pastas_image($path, $path_new){
 
 		$exp=explode('/', $path_new);
