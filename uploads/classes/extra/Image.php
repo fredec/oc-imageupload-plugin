@@ -96,16 +96,18 @@ class Image
     public function checkFile($path=false, $externo=0){
         if(!$path) $path=$this->filePath;
         if($this->s3 || $externo){
-            // if(Session::has($this->cacheS3('checkFile'))) return Session::get($this->cacheS3('checkFile'));
-            if(Session::has($this->prepLink($path))) return Session::get($this->prepLink($path));
+            // echo 'teste';
+            // echo $this->path_check();
+            // if(Session::has($this->prepLink($path))) return Session::get($this->prepLink($path));
+            $destinationPath=$this->path_check();
+            if(Session::has($this->cacheS3()) || FileHelper::isDirectory($destinationPath)) return true;
             $response = Http::get($path);
             if($response->code == 200){
-                // Session::put($this->cacheS3('checkFile'), 1, 999999999999999999);
-                Session::put($this->prepLink($path), 1, 999999999999999999);
+                // Session::put($this->prepLink($path), 1, 999999999999999999);
                 return true;
             }else{
-                // Session::put($this->cacheS3('checkFile'), 0, 999999999999999999);
-                Session::put($this->prepLink($path), 0, 999999999999999999);
+                // Session::put($this->prepLink($path), 0, 999999999999999999);
+                $this->saveDirectory();
                 return false;
             }
         }elseif (is_file($path)) return true;
