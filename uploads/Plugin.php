@@ -71,17 +71,17 @@ class Plugin extends PluginBase
 
 	public $configs;
 
-	public function base_link($url, $folder='media'){
-		if(config('cms.storage.'.$folder.'.disk') == 'local') return urldecode(parse_url($url, PHP_URL_PATH));
-		else{
-			$folder=config('cms.storage.'.$folder.'.folder');
-			$url=urldecode(parse_url($url, PHP_URL_PATH));
-			$url=explode($folder.'/', $url);
-			unset($url[0]);
-			$url='/'.$folder.'/'.implode($folder.'/', $url);
-			return $url;
-		}
-	}
+	// public function base_link($url, $folder='media'){
+	// 	if(config('cms.storage.'.$folder.'.disk') == 'local') return urldecode(parse_url($url, PHP_URL_PATH));
+	// 	else{
+	// 		$folder=config('cms.storage.'.$folder.'.folder');
+	// 		$url=urldecode(parse_url($url, PHP_URL_PATH));
+	// 		$url=explode($folder.'/', $url);
+	// 		unset($url[0]);
+	// 		$url='/'.$folder.'/'.implode($folder.'/', $url);
+	// 		return $url;
+	// 	}
+	// }
 
 	public $settings=false;
 	public function getSettings(){
@@ -151,10 +151,12 @@ class Plugin extends PluginBase
 		});
 		// //////////////GERENCIAMENTO NAS IMAGENS E ARQUIVOS NO MEDIA
 
+		// //////////////////// OTIMIZANDO IMAGENS NO FILE SYSTEM
 		\System\Models\File::extend(function($model) {
 			$model->bindEvent('model.afterCreate', function() use ($model) {
 		// $model->bindEvent('model.afterUpdate', function() use ($model) {
-				if((isset($this->config['disabled']) and $this->config['disabled']) || !strpos("[".$model->path."]", ".") || !$this->veri_extension_image($model->extension)) return;
+				$settings=$this->getSettings();
+				if((isset($settings['disabled']) and $settings['disabled']) || !strpos("[".$model->path."]", ".") || !$this->veri_extension_image($model->extension)) return;
 
 				if(!isset($model->id)) return;
 				$veri=Db::table('system_files')
@@ -181,7 +183,7 @@ class Plugin extends PluginBase
 				if(config('cms.storage.uploads.disk') == 'local') $link='storage/app'.$link;
 
 				$retorno=$image->otimizar($model->path,$link,'uploads');
-				$retorno=$retorno['infos_results'];
+				// $retorno=$retorno['infos_results'];
 
 				if($retorno){
 					$infodb=pathinfo($model->file_name);
@@ -212,35 +214,61 @@ class Plugin extends PluginBase
 			});
 
 		});
+		// //////////////////// OTIMIZANDO IMAGENS NO FILE SYSTEM
 
+		// //////////////////// OTIMIZANDO IMAGENS NO MEDIA
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
-			$info=pathinfo($filePath);
 
+			$info=pathinfo($filePath);
+			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
 			if(strpos("[".$filePath."]", "uploaded-files/")){
 				if($info['basename'] != str::slug($info['basename'])) return;
 			}
-			$ext=$info['extension'];
-			if((isset($this->config['disabled']) and $this->config['disabled']) || !$this->veri_extension_image($ext)) return;
+			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
 
+			$ext=$info['extension'];
+			$settings=$this->getSettings();
+			if((isset($settings['disabled']) and $settings['disabled']) || !$this->veri_extension_image($ext)) return;
+			$filePath=implode('/',array_filter(explode('/', $filePath)));
+
+			// //////////////REMOVER ESPAÇOS E ACENTOS DO NOME DA IMAGEM
+			$original_name  = $uploadedFile->getClientOriginalName();
+			$ext     = pathinfo( $original_name, PATHINFO_EXTENSION );
+			$original_name_no_ext = pathinfo( $original_name, PATHINFO_FILENAME );
+			if($ext == 'jpeg') $ext='jpg';
+			$new_name = str_slug( $original_name_no_ext, '-' ) . '.' . $ext;
+			// $new_name_noext=str_slug( $original_name_no_ext, '-' );
+			$medialib=MediaLibrary::instance();
+
+			if ( $new_name != $original_name ) {
+				$stop=1;
+				for ($i=0; $i < $stop; $i++) { 
+					if($i) $new_name = str_slug( $original_name_no_ext, '-' ).'-'.$i.'.' . $ext;					
+					$newPath = str_replace( $original_name, $new_name, $filePath );
+					if($medialib->exists($newPath)) $stop++;
+				}
+				$medialib->moveFile( $filePath, $newPath );
+				$filePath=$newPath;
+			}
+			// //////////////REMOVER ESPAÇOS E ACENTOS DO NOME DA IMAGEM
+
+			// $realPath = empty(trim($uploadedFile->getRealPath()))
+			// ? $uploadedFile->getPath() . DIRECTORY_SEPARATOR . $uploadedFile->getFileName()
+			// : $uploadedFile->getRealPath();
+
+			$url=$filePath=$medialib->url($filePath);
+			// $filePath='media/'.$filePath;
+			// if(config('cms.storage.media.disk') == 'local') $filePath='storage/app/'.$filePath;
+
+			if(!strpos("[".$url."]", url('/'))) $url=url($url);
 			$realPath = empty(trim($uploadedFile->getRealPath()))
 			? $uploadedFile->getPath() . DIRECTORY_SEPARATOR . $uploadedFile->getFileName()
 			: $uploadedFile->getRealPath();
 
-			$config=array();
-			$name=explode('/', $filePath); $name=explode('.', end($name));
-
-			$url=MediaLibrary::url($filePath);
-			$filePath='/media'.$filePath;
-
-			if(config('cms.storage.media.disk') == 'local'){
-				if(!strpos("[".$url."]", url('/'))) $url=url($url);
-			// $filePath=storage_path('app'.$filePath);
-				$filePath='storage/app'.$filePath;
-			}
-
-			$image=new OtimizarImage($config);
-			$retorno=$image->otimizar($url, $filePath,'media');
+			$image=new OtimizarImage();
+			$retorno=$image->otimizar($url, $filePath,'media',$realPath);
 		});
+		// //////////////////// OTIMIZANDO IMAGENS NO MEDIA
 
 	}
 
@@ -308,7 +336,7 @@ class Plugin extends PluginBase
 				$infos=pathinfo($file_path);
 				if(isset($infos['extension']) && $infos['extension'] == 'webp') return $file_path;
 				if(!$this->image_resize){
-					$this->image_resize=new \Diveramkt\Uploads\Classes\Extra\Image($file_path);
+					$this->image_resize=new \Diveramkt\Uploads\Classes\Image($file_path);
 				}else $this->image_resize->setFilepath($file_path);
 
 				return $this->image_resize->resize($width, $height, $options);
@@ -351,55 +379,55 @@ class Plugin extends PluginBase
 		];
 	}
 
-	private function addPositionedFormFields($form, $config, $where = null)
-	{
-		$beforeFields   = [];
-		$afterFields    = [];
-		$sectionDetails = false;
+	// private function addPositionedFormFields($form, $config, $where = null)
+	// {
+	// 	$beforeFields   = [];
+	// 	$afterFields    = [];
+	// 	$sectionDetails = false;
 
-		$first = array_first($config, function () {
-			return true;
-		});
+	// 	$first = array_first($config, function () {
+	// 		return true;
+	// 	});
 
-		$beforeField = is_array($first) ? array_get($first, 'before') : null;
-		$afterField  = is_array($first) ? array_get($first, 'after') : null;
+	// 	$beforeField = is_array($first) ? array_get($first, 'before') : null;
+	// 	$afterField  = is_array($first) ? array_get($first, 'after') : null;
 
-		$fields = $form->fields;
-		if ($where == 'primary') {
-			$fields = $form->tabs["fields"];
-		}
-		if ($where == 'secondary') {
-			$fields = $form->secondaryTabs["fields"];
-		}
+	// 	$fields = $form->fields;
+	// 	if ($where == 'primary') {
+	// 		$fields = $form->tabs["fields"];
+	// 	}
+	// 	if ($where == 'secondary') {
+	// 		$fields = $form->secondaryTabs["fields"];
+	// 	}
 
-		foreach ($fields as $field => $value) {
-			$item      = $form->getField($field);
-			$itemName  = $item->fieldName;
+	// 	foreach ($fields as $field => $value) {
+	// 		$item      = $form->getField($field);
+	// 		$itemName  = $item->fieldName;
 
-			if ($itemName == $afterField or  $itemName == $beforeField or $sectionDetails) {
-				if ($itemName == $afterField and !$sectionDetails) {
-					$sectionDetails = true;
-				} else {
-					$afterFields[$itemName] = $item->config;
-					$sectionDetails         = true;
-					$form->removeField($field);
-				}
-			}
-		}
+	// 		if ($itemName == $afterField or  $itemName == $beforeField or $sectionDetails) {
+	// 			if ($itemName == $afterField and !$sectionDetails) {
+	// 				$sectionDetails = true;
+	// 			} else {
+	// 				$afterFields[$itemName] = $item->config;
+	// 				$sectionDetails         = true;
+	// 				$form->removeField($field);
+	// 			}
+	// 		}
+	// 	}
 
-		switch ($where) {
-			case 'primary':
-			$form->addTabFields($config, $where);
-			$form->addTabFields($afterFields, $where);
-			break;
-			case 'secondary':
-			$form->addSecondaryTabFields($config, $where);
-			$form->addSecondaryTabFields($afterFields, $where);
-			break;
-			default:
-			$form->addFields($config, $where);
-			$form->addFields($afterFields, $where);
-		}
-	}
+	// 	switch ($where) {
+	// 		case 'primary':
+	// 		$form->addTabFields($config, $where);
+	// 		$form->addTabFields($afterFields, $where);
+	// 		break;
+	// 		case 'secondary':
+	// 		$form->addSecondaryTabFields($config, $where);
+	// 		$form->addSecondaryTabFields($afterFields, $where);
+	// 		break;
+	// 		default:
+	// 		$form->addFields($config, $where);
+	// 		$form->addFields($afterFields, $where);
+	// 	}
+	// }
 
 }

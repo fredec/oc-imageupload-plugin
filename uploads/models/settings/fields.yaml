@@ -7,12 +7,12 @@ fields:
         default: 0
 tabs:
     fields:
-        name_arq:
-            label: 'Manter nome original (Uploads na área do Media)'
-            span: full
-            comment: 'Caso desativado, transforma o nome do arquivo em slug (Nome de Teste -> nome-de-teste), caso ativado apenas converte os espaços (Nome de Teste -> Nome-de-Teste)'
-            type: switch
-            tab: Configurações
+        # name_arq:
+        #     label: 'Manter nome original (Uploads na área do Media)'
+        #     span: full
+        #     comment: 'Caso desativado, transforma o nome do arquivo em slug (Nome de Teste -> nome-de-teste), caso ativado apenas converte os espaços (Nome de Teste -> Nome-de-Teste)'
+        #     type: switch
+        #     tab: Configurações
         tamanho_max:
             label: 'Tamanho máximo da imagem (Padrão: 3000)'
             span: auto
@@ -23,12 +23,21 @@ tabs:
             span: auto
             type: number
             tab: Configurações
+        converter_ext:
+            label: 'Converter extensão das imagens'
+            span: left
+            type: dropdown
+            emptyOption: Desativado
+            options:
+                jpg: JPG
+                webp: WEBP
+            tab: Configurações
         converter_webp:
             label: 'Converter imagens para WEBP no resize'
             span: auto
             comment: 'Verifica se o navegador suporta a extensão webp e converte automaticamente todas as imagens que for utilizado |resize'
             type: switch
-            tab: 'Converter extensão'
+            tab: 'Resize'
         # converter_webp_upload:
         #     label: 'Upload das imagens WEBP:'
         #     span: auto
@@ -38,22 +47,13 @@ tabs:
         #         jpg: 'Converter todas para jpg'
         #         png: 'Converter todas para PNG'
         #     default: 0
-        #     tab: 'Converter extensão'
+        #     tab: 'Resize'
         resize_max_width:
             label: 'Resize max height width'
             span: auto
             comment: 'As imagens com |resize terão a altura e largura máxima original da imagem quanto o mode crop não estiver habilitado'
             type: switch
-            tab: 'Converter extensão'
-        converter_ext:
-            label: 'Converter extensão das imagens'
-            span: left
-            type: dropdown
-            emptyOption: Desativado
-            options:
-                jpg: JPG
-                webp: WEBP
-            tab: 'Converter extensão'
+            tab: 'Resize'
         compression_small_size:
             label: 'Size imagens pequenas (Padrão: 50 Kbs)'
             span: left

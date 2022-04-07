@@ -1,4 +1,4 @@
-<?php namespace Diveramkt\Uploads\Classes\Extra;
+<?php namespace Diveramkt\Uploads\Classes;
 
 // use ToughDeveloper\ImageResizer\Models\Settings;
 use File as FileHelper;
