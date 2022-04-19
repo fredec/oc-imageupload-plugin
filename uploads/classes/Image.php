@@ -323,6 +323,9 @@ public function saveDirectory(){
     {
         $path = urldecode(parse_url($filePath, PHP_URL_PATH));
 
+        $path_check=str_replace([' /',' '], ['',''], ' '.$path);
+        if(is_file($path_check)) return $path_check;
+
         // Create array of commonly used folders
         // These will be used to try capture the actual file path to an image without the sub-directory path
         $folders = [
