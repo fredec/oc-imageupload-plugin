@@ -89,6 +89,7 @@ class OtimizarImage {
 			}
 		}
 
+		$path=trim(str_replace(' /','',' '.$path.' '));
 		if(!file_exists($path)) return;
 
 		$path=implode('/',array_filter(explode('/', $path)));
