@@ -41,9 +41,9 @@ class Plugin extends PluginBase
 {
 	public function registerComponents()
 	{
-		// return [
-		// 	'Diveramkt\Uploads\Components\Teste' => 'Teste'
-		// ];
+		return [
+			'Diveramkt\Uploads\Components\Fileupload' => 'Fileupload'
+		];
 	}
 
 	public function registerSettings()

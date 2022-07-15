@@ -1,0 +1,41 @@
+  <div
+  class="responsiv-uploader-fileupload {{__SELF__.limit == 1?'style-file-single':'style-file-multi is-multi'}}"
+  data-control="fileupload_uploads"
+  data-template="#uploaderTemplateuploadFile_{{__SELF__}}"
+  data-unique-id="uploadFile"
+  {% if __SELF__.fileTypes %}data-file-types="{{ __SELF__.fileTypes }}"{% endif %}
+  data-paramName="Fileupload_file_data_{{__SELF__}}"
+  >
+  <!-- <input type="hidden" name="_uploader[files]" value="" /> -->
+
+  <button type="button" class="btn btn-secondary oc-icon-upload fileupload-button" data-limit="{{__SELF__.limit}}">
+    <i class="fa fa-upload"></i> {{__SELF__.button}}
+</button>
+
+<div class="upload-files-container"></div>
+</div>
+
+<!-- Template for new files -->
+<script type="text/template" id="uploaderTemplateuploadFile_{{__SELF__}}">
+    <div class="upload-object dz-preview dz-file-preview">
+        <div class="icon-container">
+            <img data-dz-thumbnail src="{{ 'plugins/diveramkt/uploads/assets/js/uploader/imgs/upload.png'|app }}" />
+        </div>
+        <div class="info">
+            <h4 class="filename">
+                <span data-dz-name></span>
+            </h4>
+            <p class="size" data-dz-size></p>
+            <p class="error"><span data-dz-errormessage></span></p>
+        </div>
+        <div class="meta">
+            <a
+            href="javascript:;"
+            class="upload-remove-button"
+            data-request="{{ 'onRemoveFileUpload' }}"
+            data-request-confirm="Quer mesmo remover este arquivo ?"
+            >&times;</a>
+            <div class="progress-bar"><span class="upload-progress" data-dz-uploadprogress></span></div>
+        </div>
+    </div>
+</script>
