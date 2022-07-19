@@ -5,10 +5,12 @@
   data-unique-id="uploadFile"
   {% if __SELF__.fileTypes %}data-file-types="{{ __SELF__.fileTypes }}"{% endif %}
   data-paramName="Fileupload_file_data_{{__SELF__}}"
+  data-limit="{{__SELF__.limit}}"
   >
   <!-- <input type="hidden" name="_uploader[files]" value="" /> -->
 
-  <button type="button" class="btn btn-secondary oc-icon-upload fileupload-button" data-limit="{{__SELF__.limit}}">
+   <!-- data-limit="{{__SELF__.limit}}" -->
+  <button type="button" class="btn btn-secondary oc-icon-upload fileupload-button">
     <i class="fa fa-upload"></i> {{__SELF__.button}}
 </button>
 

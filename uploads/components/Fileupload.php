@@ -64,17 +64,14 @@ class Fileupload extends \Cms\Classes\ComponentBase
 	public $fileTypes,$maxSize,$button,$limit;
 
 	public function onRun(){
-		if (Input::hasFile('Fileupload_file_data_'.$this->alias)) return $this->checkUploadAction('Fileupload_file_data_'.$this->alias);
-		$this->addJs('/plugins/diveramkt/uploads/assets/js/uploader/dropzone.js');
-		$this->addJs('/plugins/diveramkt/uploads/assets/js/uploader/uploader.js');
-		$this->addCss('/plugins/diveramkt/uploads/assets/js/uploader/uploader.css');
-
 		if($this->property('fileTypes') && is_array($this->property('fileTypes'))) $this->fileTypes='.'.implode(',.', $this->property('fileTypes'));
 		$this->maxSize=$this->property('maxSize');
 		$this->button=$this->property('button');
 		$this->limit=$this->property('limit');
+		if (Input::hasFile('Fileupload_file_data_'.$this->alias)) return $this->checkUploadAction('Fileupload_file_data_'.$this->alias);
+		$this->addJs('/plugins/diveramkt/uploads/assets/js/uploader/dropzone.js');
+		$this->addJs('/plugins/diveramkt/uploads/assets/js/uploader/uploader.js?v=0.0.1');
+		$this->addCss('/plugins/diveramkt/uploads/assets/js/uploader/uploader.css');
 	}
-
-	// public $key_tiny='teste';
 
 }
