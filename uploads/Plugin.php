@@ -334,7 +334,10 @@ class Plugin extends PluginBase
 			},
 			'resize' => function($file_path, $width = false, $height = false, $options = []) {
 				$infos=pathinfo($file_path);
-				if(isset($infos['extension']) && $infos['extension'] == 'webp') return $file_path;
+				if(isset($infos['extension']) && ($infos['extension'] == 'webp' || $infos['extension'] == 'svg')){
+					if(!strpos("[".url('/')."]",$file_path)) return url($file_path);
+					else return $file_path;
+				}
 				if(!$this->image_resize){
 					$this->image_resize=new \Diveramkt\Uploads\Classes\Image($file_path);
 				}else $this->image_resize->setFilepath($file_path);
