@@ -365,7 +365,7 @@ public function saveDirectory(){
 
             if(isset($this->settings->converter_webp) && $this->settings->converter_webp){
             // https://stackoverflow.com/questions/18164070/detect-if-browser-supports-webp-format-server-side
-                if( strpos( $_SERVER['HTTP_ACCEPT'], 'image/webp' ) !== false ) $options['extension']='webp';
+                if( isset($_SERVER['HTTP_ACCEPT']) && strpos( $_SERVER['HTTP_ACCEPT'], 'image/webp' ) !== false ) $options['extension']='webp';
             }
         }
         if (!isset($options['quality']) && is_int($this->settings->default_quality)) {

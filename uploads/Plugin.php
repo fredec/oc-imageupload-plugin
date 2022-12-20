@@ -339,6 +339,18 @@ class Plugin extends PluginBase
 					if(!strpos("[".url('/')."]",$file_path)) return url($file_path);
 					else return $file_path;
 				}
+				if($infos['name'].'.'.$infos['extension'] != Str::slug($infos['name']).'.'.$infos['extension']){
+					// if(strpos("[".$file_path."]", " ") || strpos("[".$file_path."]", "%20")){
+						// $file_path_new=str_replace(['%20',' '],['-','-'],$file_path);
+						$file_path_new=str_replace($infos['name'],Str::slug($infos['name']),$file_path);
+						if(!file_exists($file_path_new)){
+							$file_path_new=trim(str_replace(' /', '', ' '.$file_path_new));
+							$file_path=trim(str_replace([' /','%20'], ['',' '], ' '.$file_path));
+							FileHelper::copy($file_path, $file_path_new);
+						}
+						$file_path=$file_path_new;
+					}
+
 				if(!$this->image_resize){
 					$this->image_resize=new \Diveramkt\Uploads\Classes\Image($file_path);
 				}else $this->image_resize->setFilepath($file_path);
