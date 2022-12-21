@@ -334,11 +334,13 @@ class Plugin extends PluginBase
 			},
 			'resize' => function($file_path, $width = false, $height = false, $options = []) {
 				$infos=pathinfo($file_path);
+				if(!isset($infos['name'])) return $file_path;
 				$settings=$this->getSettings();
 				if(isset($infos['extension']) && (($infos['extension'] == 'webp' && !$settings->converter_webp) || $infos['extension'] == 'svg')){
 					if(!strpos("[".url('/')."]",$file_path)) return url($file_path);
 					else return $file_path;
 				}
+				if(!isset($infos['name'])) return $file_path;
 				if($infos['name'].'.'.$infos['extension'] != Str::slug($infos['name']).'.'.$infos['extension']){
 					// if(strpos("[".$file_path."]", " ") || strpos("[".$file_path."]", "%20")){
 						// $file_path_new=str_replace(['%20',' '],['-','-'],$file_path);
