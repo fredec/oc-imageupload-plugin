@@ -218,7 +218,6 @@ class Plugin extends PluginBase
 
 		// //////////////////// OTIMIZANDO IMAGENS NO MEDIA
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
-
 			$info=pathinfo($filePath);
 			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
 			if(strpos("[".$filePath."]", "uploaded-files/")){
@@ -229,44 +228,71 @@ class Plugin extends PluginBase
 			$ext=$info['extension'];
 			$settings=$this->getSettings();
 			if((isset($settings['disabled']) and $settings['disabled']) || !$this->veri_extension_image($ext)) return;
-			$filePath=implode('/',array_filter(explode('/', $filePath)));
 
-			// //////////////REMOVER ESPAÇOS E ACENTOS DO NOME DA IMAGEM
-			$original_name  = $uploadedFile->getClientOriginalName();
-			$ext     = pathinfo( $original_name, PATHINFO_EXTENSION );
-			$original_name_no_ext = pathinfo( $original_name, PATHINFO_FILENAME );
-			if($ext == 'jpeg') $ext='jpg';
-			$new_name = str_slug( $original_name_no_ext, '-' ) . '.' . $ext;
-			// $new_name_noext=str_slug( $original_name_no_ext, '-' );
 			$medialib=MediaLibrary::instance();
-
-			if ( $new_name != $original_name ) {
+			if(Str::slug($info['filename']) != $info['filename']){
 				$stop=1;
-				for ($i=0; $i < $stop; $i++) { 
-					if($i) $new_name = str_slug( $original_name_no_ext, '-' ).'-'.$i.'.' . $ext;					
-					$newPath = str_replace( $original_name, $new_name, $filePath );
-					if($medialib->exists($newPath)) $stop++;
+				$check='';
+				for ($i=0; $i < $stop; $i++) {
+					if($i) $newPath=Str::slug($info['filename']).'-'.$i.'.'.$info['extension'];
+					else $newPath=Str::slug($info['filename']).'.'.$info['extension'];
+					$check=str_replace(['.jpeg',' /',' '], ['.jpg','',''], ' '.$medialib->url($newPath));
+					if(file_exists($check)) $stop++;
 				}
 				$medialib->moveFile( $filePath, $newPath );
 				$filePath=$newPath;
 			}
-			// //////////////REMOVER ESPAÇOS E ACENTOS DO NOME DA IMAGEM
-
-			// $realPath = empty(trim($uploadedFile->getRealPath()))
-			// ? $uploadedFile->getPath() . DIRECTORY_SEPARATOR . $uploadedFile->getFileName()
-			// : $uploadedFile->getRealPath();
-
 			$url=$filePath=$medialib->url($filePath);
-			// $filePath='media/'.$filePath;
-			// if(config('cms.storage.media.disk') == 'local') $filePath='storage/app/'.$filePath;
-
 			if(!strpos("[".$url."]", url('/'))) $url=url($url);
 			$realPath = empty(trim($uploadedFile->getRealPath()))
 			? $uploadedFile->getPath() . DIRECTORY_SEPARATOR . $uploadedFile->getFileName()
 			: $uploadedFile->getRealPath();
 
+
 			$image=new OtimizarImage();
 			$retorno=$image->otimizar($url, $filePath,'media',$realPath);
+
+			// $ext=$info['extension'];
+			// $settings=$this->getSettings();
+			// if((isset($settings['disabled']) and $settings['disabled']) || !$this->veri_extension_image($ext)) return;
+			// $filePath=implode('/',array_filter(explode('/', $filePath)));
+
+			// // //////////////REMOVER ESPAÇOS E ACENTOS DO NOME DA IMAGEM
+			// $original_name  = $uploadedFile->getClientOriginalName();
+			// $ext     = pathinfo( $original_name, PATHINFO_EXTENSION );
+			// $original_name_no_ext = pathinfo( $original_name, PATHINFO_FILENAME );
+			// if($ext == 'jpeg') $ext='jpg';
+			// $new_name = str_slug( $original_name_no_ext, '-' ) . '.' . $ext;
+			// // $new_name_noext=str_slug( $original_name_no_ext, '-' );
+			// $medialib=MediaLibrary::instance();
+
+			// if ( $new_name != $original_name ) {
+			// 	$stop=1;
+			// 	for ($i=0; $i < $stop; $i++) { 
+			// 		if($i) $new_name = str_slug( $original_name_no_ext, '-' ).'-'.$i.'.' . $ext;					
+			// 		$newPath = str_replace( $original_name, $new_name, $filePath );
+			// 		if($medialib->exists($newPath)) $stop++;
+			// 	}
+			// 	$medialib->moveFile( $filePath, $newPath );
+			// 	$filePath=$newPath;
+			// }
+			// // //////////////REMOVER ESPAÇOS E ACENTOS DO NOME DA IMAGEM
+
+			// // $realPath = empty(trim($uploadedFile->getRealPath()))
+			// // ? $uploadedFile->getPath() . DIRECTORY_SEPARATOR . $uploadedFile->getFileName()
+			// // : $uploadedFile->getRealPath();
+
+			// $url=$filePath=$medialib->url($filePath);
+			// // $filePath='media/'.$filePath;
+			// // if(config('cms.storage.media.disk') == 'local') $filePath='storage/app/'.$filePath;
+
+			// if(!strpos("[".$url."]", url('/'))) $url=url($url);
+			// $realPath = empty(trim($uploadedFile->getRealPath()))
+			// ? $uploadedFile->getPath() . DIRECTORY_SEPARATOR . $uploadedFile->getFileName()
+			// : $uploadedFile->getRealPath();
+
+			// $image=new OtimizarImage();
+			// $retorno=$image->otimizar($url, $filePath,'media',$realPath);
 		});
 		// //////////////////// OTIMIZANDO IMAGENS NO MEDIA
 
@@ -334,25 +360,11 @@ class Plugin extends PluginBase
 			},
 			'resize' => function($file_path, $width = false, $height = false, $options = []) {
 				$infos=pathinfo($file_path);
-				if(!isset($infos['name'])) return $file_path;
 				$settings=$this->getSettings();
 				if(isset($infos['extension']) && (($infos['extension'] == 'webp' && !$settings->converter_webp) || $infos['extension'] == 'svg')){
 					if(!strpos("[".url('/')."]",$file_path)) return url($file_path);
 					else return $file_path;
 				}
-				if(!isset($infos['name'])) return $file_path;
-				if($infos['name'].'.'.$infos['extension'] != Str::slug($infos['name']).'.'.$infos['extension']){
-					// if(strpos("[".$file_path."]", " ") || strpos("[".$file_path."]", "%20")){
-						// $file_path_new=str_replace(['%20',' '],['-','-'],$file_path);
-						$file_path_new=str_replace($infos['name'],Str::slug($infos['name']),$file_path);
-						if(!file_exists($file_path_new)){
-							$file_path_new=trim(str_replace(' /', '', ' '.$file_path_new));
-							$file_path=trim(str_replace([' /','%20'], ['',' '], ' '.$file_path));
-							FileHelper::copy($file_path, $file_path_new);
-						}
-						$file_path=$file_path_new;
-					}
-
 				if(!$this->image_resize){
 					$this->image_resize=new \Diveramkt\Uploads\Classes\Image($file_path);
 				}else $this->image_resize->setFilepath($file_path);
@@ -362,7 +374,7 @@ class Plugin extends PluginBase
 		];
 	}
 	public $image_resize=null;
-	
+
 	public function gerar_pastas_image($path, $path_new){
 
 		$exp=explode('/', $path_new);
