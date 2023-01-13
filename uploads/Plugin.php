@@ -234,11 +234,18 @@ class Plugin extends PluginBase
 				$stop=1;
 				$check='';
 				for ($i=0; $i < $stop; $i++) {
-					if($i) $newPath=Str::slug($info['filename']).'-'.$i.'.'.$info['extension'];
-					else $newPath=Str::slug($info['filename']).'.'.$info['extension'];
+					if($i) $newPath=$info['dirname'].'/'.Str::slug($info['filename']).'-'.$i.'.'.$info['extension'];
+					else $newPath=$info['dirname'].'/'.Str::slug($info['filename']).'.'.$info['extension'];
 					$check=str_replace(['.jpeg',' /',' '], ['.jpg','',''], ' '.$medialib->url($newPath));
 					if(file_exists($check)) $stop++;
 				}
+
+				$texto=json_encode($info);
+				$arquivo = "meu_arquivo.txt";
+				$fp = fopen($arquivo, "w+");
+				fwrite($fp, $texto);
+				fclose($fp);
+
 				$medialib->moveFile( $filePath, $newPath );
 				$filePath=$newPath;
 			}
