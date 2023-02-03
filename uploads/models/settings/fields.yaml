@@ -32,10 +32,17 @@ tabs:
                 jpg: JPG
                 webp: WEBP
             tab: Configurações
+        # enabled_webp:
+        #     label: 'Habilitado imagens WEBP'
+        #     span: full
+        #     comment: 'Habilitar imagens webp no |resize'
+        #     type: dropdown
+        #     tab: 'Resize'
         converter_webp:
             label: 'Converter imagens para WEBP no resize'
             span: auto
             comment: 'Verifica se o navegador suporta a extensão webp e converte automaticamente todas as imagens que for utilizado |resize'
+            # comment: '(Permitir que o resize otimoze imagens webp) ou (Todas as imagens sejam convertidas em webp automaticamente que forem utilizadas resize)'
             type: switch
             tab: 'Resize'
         # converter_webp_upload:

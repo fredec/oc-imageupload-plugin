@@ -155,30 +155,30 @@ class Image
 
         // If extension is auto, set the actual extension
         if (strtolower($this->options['extension']) == 'auto') {
-           $this->options['extension'] = pathinfo($this->filePath)['extension'];
-       }
+         $this->options['extension'] = pathinfo($this->filePath)['extension'];
+     }
 
         // Set a disk name, this enables caching
-       $this->file->disk_name = $this->diskName();
+     $this->file->disk_name = $this->diskName();
 
         // Set the thumbfilename to save passing variables to many functions
-       $this->thumbFilename = $this->getThumbFilename($width, $height);
+     $this->thumbFilename = $this->getThumbFilename($width, $height);
 
         // If the image is cached, don't try resized it.
-       if (!$this->isImageCached()) {
+     if (!$this->isImageCached()) {
             // Set the file to be created from another file
-           if($this->s3) $this->file->fromUrl($this->filePath);
-           else $this->file->fromFile($this->filePath);
+         if($this->s3) $this->file->fromUrl($this->filePath);
+         else $this->file->fromFile($this->filePath);
 
             // Resize it
-           $thumb = $this->file->getThumb($width, $height, $this->options);
+         $thumb = $this->file->getThumb($width, $height, $this->options);
 
             // Not a gif file? Compress with tinyPNG
             // if ($this->isCompressionEnabled()) {
             //     $this->compressWithTinyPng();
             // }
 
-           if(!$this->s3 && !$this->isS3()){
+         if(!$this->s3 && !$this->isS3()){
             // Touch the cached image with the original mtime to align them
             touch($this->getCachedImagePath(), filemtime($this->filePath));
             $this->deleteTempFile();

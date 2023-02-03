@@ -368,7 +368,8 @@ class Plugin extends PluginBase
 			'resize' => function($file_path, $width = false, $height = false, $options = []) {
 				$infos=pathinfo($file_path);
 				$settings=$this->getSettings();
-				if(isset($infos['extension']) && (($infos['extension'] == 'webp' && !$settings->converter_webp) || $infos['extension'] == 'svg')){
+				// if(isset($infos['extension']) && (($infos['extension'] == 'webp' && !$settings->converter_webp) || $infos['extension'] == 'svg')){
+				if(isset($infos['extension']) && ($infos['extension'] == 'svg')){
 					if(!strpos("[".url('/')."]",$file_path)) return url($file_path);
 					else return $file_path;
 				}
