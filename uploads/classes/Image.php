@@ -115,6 +115,8 @@ class Image
         return false;
     }
 
+    public static $getParseDefaultSettings=null;
+
     /**
      * Resizes an Image
      *
@@ -127,25 +129,30 @@ class Image
     public function resize($width = false, $height = false, $options = [])
     {
 
+        // $return_cache_resize=\Str::slug($this->filePath.$width.$height.json_encode($options));
+        // if (Cache::has($return_cache_resize)) return Cache::get($return_cache_resize);
+
         // echo $this->cacheS3();
         // if($this->s3) return $this->filePath;
 
         // Parse the default settings
-        $this->options = $this->parseDefaultSettings($options);
+        if(!Self::$getParseDefaultSettings) Self::$getParseDefaultSettings=$this->parseDefaultSettings($options);
+        $this->options=Self::$getParseDefaultSettings;
+        // $this->options = $this->parseDefaultSettings($options);
 
         // return $this->filePath;
         // return $this->getCachedImagePath();
 
-        if(isset($this->settings->resize_max_width) && $this->settings->resize_max_width && $this->options['mode'] != 'crop'){
-            $cache_resize='getimagesize_'.$this->filePath;
-            if (!Cache::has($cache_resize)) {
-                $imgsize=getimagesize(str_replace(' ', '%20', $this->filePath));
-                Cache::put($cache_resize, serialize($imgsize), 999999999999999999);
-            }else $imgsize=unserialize(Cache::get($cache_resize));
+        // if(isset($this->settings->resize_max_width) && $this->settings->resize_max_width && $this->options['mode'] != 'crop'){
+        //     $cache_resize='getimagesize_'.$this->filePath;
+        //     if (!Cache::has($cache_resize)) {
+        //         $imgsize=getimagesize(str_replace(' ', '%20', $this->filePath));
+        //         Cache::put($cache_resize, serialize($imgsize), 999999999999999999);
+        //     }else $imgsize=unserialize(Cache::get($cache_resize));
 
-            if(isset($imgsize[0]) && $width > $imgsize[0]) $width=$imgsize[0];
-            if(isset($imgsize[1]) && $height > $imgsize[1]) $height=$imgsize[1];
-        }
+        //     if(isset($imgsize[0]) && $width > $imgsize[0]) $width=$imgsize[0];
+        //     if(isset($imgsize[1]) && $height > $imgsize[1]) $height=$imgsize[1];
+        // }
 
         // Not a file? Display the not found image
         // if (!is_file($this->filePath)) {
@@ -193,6 +200,7 @@ class Image
         // Return the URL
     // if($path_rename) return $path_rename;
     // else return $this;
+    // Cache::put($return_cache_resize, $this, 999999999999999999);
     return $this;
 }
 
@@ -365,7 +373,8 @@ public function saveDirectory(){
 
             if(isset($this->settings->converter_webp) && $this->settings->converter_webp){
             // https://stackoverflow.com/questions/18164070/detect-if-browser-supports-webp-format-server-side
-                if( strpos( $_SERVER['HTTP_ACCEPT'], 'image/webp' ) !== false ) $options['extension']='webp';
+                // if( strpos( $_SERVER['HTTP_ACCEPT'], 'image/webp' ) !== false ) $options['extension']='webp';
+                $options['extension']='webp';
             }
         }
         if (!isset($options['quality']) && is_int($this->settings->default_quality)) {
