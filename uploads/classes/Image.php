@@ -136,9 +136,9 @@ class Image
         // if($this->s3) return $this->filePath;
 
         // Parse the default settings
-        if(!Self::$getParseDefaultSettings) Self::$getParseDefaultSettings=$this->parseDefaultSettings($options);
-        $this->options=Self::$getParseDefaultSettings;
-        // $this->options = $this->parseDefaultSettings($options);
+        // if(!Self::$getParseDefaultSettings) Self::$getParseDefaultSettings=$this->parseDefaultSettings($options);
+        // $this->options=Self::$getParseDefaultSettings;
+        $this->options = $this->parseDefaultSettings($options);
 
         // return $this->filePath;
         // return $this->getCachedImagePath();
