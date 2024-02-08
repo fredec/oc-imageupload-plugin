@@ -240,12 +240,6 @@ class Plugin extends PluginBase
 					if(file_exists($check)) $stop++;
 				}
 
-				$texto=json_encode($info);
-				$arquivo = "meu_arquivo.txt";
-				$fp = fopen($arquivo, "w+");
-				fwrite($fp, $texto);
-				fclose($fp);
-
 				$medialib->moveFile( $filePath, $newPath );
 				$filePath=$newPath;
 			}
@@ -366,6 +360,7 @@ class Plugin extends PluginBase
 				return $http.'/'.$path_new;
 			},
 			'resize' => function($file_path, $width = false, $height = false, $options = []) {
+				if(!strpos("[".$file_path."]", url('/'))) return $file_path;
 				$file_path=trim(str_replace(' /', '', ' '.$file_path));
 				// $infos=pathinfo($file_path);
 				$settings=$this->getSettings();
