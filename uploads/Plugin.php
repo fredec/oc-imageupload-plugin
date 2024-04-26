@@ -360,8 +360,10 @@ class Plugin extends PluginBase
 				return $http.'/'.$path_new;
 			},
 			'resize' => function($file_path, $width = false, $height = false, $options = []) {
-				if(!strpos("[".$file_path."]", url('/'))) return $file_path;
 				$file_path=trim(str_replace(' /', '', ' '.$file_path));
+				if(!strpos("[".$file_path."]", url('/'))){
+					if(!file_exists($file_path)) return $file_path;
+				}
 				// $infos=pathinfo($file_path);
 				$settings=$this->getSettings();
 				// if(isset($infos['extension']) && (($infos['extension'] == 'webp' && !$settings->converter_webp) || $infos['extension'] == 'svg')){
