@@ -121,7 +121,7 @@ class Plugin extends PluginBase
 				$infosArcane = \Arcane\Seo\Models\Settings::instance();
 				if($infosArcane->minify_html) \Storage::deleteDirectory('arcane/seo/minify');
 			}
-			if($user->id && in_array('SerenityNow\Cacheroute\Plugin', $class)) Artisan::call('cache:clear');
+			if(isset($user->id) && in_array('SerenityNow\Cacheroute\Plugin', $class)) Artisan::call('cache:clear');
 		// if(in_array('Arcane\Seo\Models\Settings', $class) || in_array('Arcane\Seo\Plugin', $class)){}
 		});
 
@@ -243,7 +243,10 @@ class Plugin extends PluginBase
 				$medialib->moveFile( $filePath, $newPath );
 				$filePath=$newPath;
 			}
-			$url=$filePath=$medialib->url($filePath);
+
+			// $url=$filePath=$medialib->url($filePath);
+			$url=$filePath='/storage/app'.$filePath;
+			
 			if(!strpos("[".$url."]", url('/'))) $url=url($url);
 			$realPath = empty(trim($uploadedFile->getRealPath()))
 			? $uploadedFile->getPath() . DIRECTORY_SEPARATOR . $uploadedFile->getFileName()
