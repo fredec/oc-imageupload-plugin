@@ -89,6 +89,10 @@ class Plugin extends PluginBase
 		return $this->settings;
 	}
 
+	function removerAcentos($string){
+		return preg_replace(array("/(á|à|ã|â|ä)/","/(Á|À|Ã|Â|Ä)/","/(é|è|ê|ë)/","/(É|È|Ê|Ë)/","/(í|ì|î|ï)/","/(Í|Ì|Î|Ï)/","/(ó|ò|õ|ô|ö)/","/(Ó|Ò|Õ|Ô|Ö)/","/(ú|ù|û|ü)/","/(Ú|Ù|Û|Ü)/","/(ñ)/","/(Ñ)/"),explode(" ","a A e E i I o O u U n N"),$string);
+	}
+
 	public function boot(){
 		$settings=$this->getSettings();
 		// $extension_files=explode(',', $settings->allowed_files);
@@ -218,6 +222,10 @@ class Plugin extends PluginBase
 
 		// //////////////////// OTIMIZANDO IMAGENS NO MEDIA
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
+			if($this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')) != $filePath){
+				rename('storage/app/'.$filePath, 'storage/app/'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
+				$filePath=$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8'));
+			}
 			$info=pathinfo($filePath);
 			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
 			if(strpos("[".$filePath."]", "uploaded-files/")){
