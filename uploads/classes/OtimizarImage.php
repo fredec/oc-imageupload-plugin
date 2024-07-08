@@ -27,7 +27,8 @@ class OtimizarImage {
 	function __construct($config=false)
 	{
 
-		$this->settings = Settings::instance();
+		// $this->settings = Settings::instance();
+		$this->settings=Functions3::getSettings();
 		$default=[
 			'compression' => 90,
 			'tamanho_max' => 3000,
@@ -234,10 +235,8 @@ class OtimizarImage {
 		$imagem_marca=$this->config['imagem_marca'];
 
 		$marca=$imagem_marca->getPath();
-
-		// $marca=str_replace(array('http://'.$_SERVER['HTTP_HOST'].'/','https://'.$_SERVER['HTTP_HOST'].'/'),array('',''),$marca);
-		$marca=str_replace(array('http://'.Request::server('HTTP_HOST').'/','https://'.Request::server('HTTP_HOST').'/'),array('',''),$marca);
-
+		// $marca=str_replace(url('/').'/','',$marca);
+		$marca=str_replace([url('/').'/',url('/')], ['',''], $marca);
 			/////////////////////////////////////MARCA DAGUA
 
 		try {
@@ -255,17 +254,24 @@ class OtimizarImage {
 
 
 			$size_marca = getimagesize($marca);
+
+			$width=($size[0]*$proporcao_marca)/100;
+			$height=($width*$size[1])/$size[0];
+
 			if($size[0] > $size[1]){
-				$width=($size[0]*$proporcao_marca)/100;
-				$height=($width*$size[1])/$size[0];
-			}else{
 				$height=($size[1]*$proporcao_marca)/100;
-				$width=($height*$size[0])/$size[1];
+				// $width=($height*$size[0])/$size[1];
+				$width=($height*$size_marca[0])/$size_marca[1];
+			}else{
+				$width=($size[0]*$proporcao_marca)/100;
+				// $height=($width*$size[1])/$size[0];
+				$height=($width*$size_marca[1])/$size_marca[0];
 			}
-			if($width > $size_marca[0] || $height > $size_marca[1]){
-				$width=$size_marca[0];
-				$height=$size_marca[1];
-			}
+			// if($width > $size_marca[0] || $height > $size_marca[1]){
+			// 	$width=$size_marca[0];
+			// 	$height=$size_marca[1];
+			// }
+
 
 			$x=0; $y=0;
 			if($posicao_horizonal == 'center') $x=($size[0]/2)-($width/2);
@@ -276,10 +282,11 @@ class OtimizarImage {
 			elseif($posicao_vertical == 'top') $y=$espacamento_marca;
 			elseif($posicao_vertical == 'bottom') $y=$size[1]-$height-$espacamento_marca;
 
+			// echo '<br/>';
 			$imagem=new Image($image);
 			$image_marca=Image::open($marca)->cropResize($width, $height)->opacity($opacity_marca);
 			$imagem->merge($image_marca,$x,$y);
-		// $imagem->save('teste.jpg','jpg',$this->compression);
+			// $imagem->save('teste.jpg','jpg',$this->compression);
 			$imagem->save($image);
 			return $image;
 		} catch (Exception $e) {

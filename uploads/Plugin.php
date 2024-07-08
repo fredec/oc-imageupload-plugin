@@ -26,6 +26,7 @@ use Diveramkt\Uploads\Classes\OtimizarImage;
 use October\Rain\Database\Attach\File;
 use File as FileHelper;
 use Diveramkt\Uploads\Classes\Extra\Fileuploads;
+use Diveramkt\Uploads\Classes\Functions3;
 
 use Storage;
 use Artisan;
@@ -85,7 +86,7 @@ class Plugin extends PluginBase
 
 	public $settings=false;
 	public function getSettings(){
-		if(!$this->settings) $this->settings=Settings::instance();
+		if(!$this->settings) $this->settings=Functions3::getSettings();
 		return $this->settings;
 	}
 
@@ -159,7 +160,7 @@ class Plugin extends PluginBase
 		\System\Models\File::extend(function($model) {
 			$model->bindEvent('model.afterCreate', function() use ($model) {
 		// $model->bindEvent('model.afterUpdate', function() use ($model) {
-				$settings=$this->getSettings();
+				$settings=Functions3::getSettings();
 				if((isset($settings['disabled']) and $settings['disabled']) || !strpos("[".$model->path."]", ".") || !$this->veri_extension_image($model->extension)) return;
 
 				if(!isset($model->id)) return;
@@ -234,7 +235,7 @@ class Plugin extends PluginBase
 			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
 
 			$ext=$info['extension'];
-			$settings=$this->getSettings();
+			$settings=Functions3::getSettings();
 			if((isset($settings['disabled']) and $settings['disabled']) || !$this->veri_extension_image($ext)) return;
 
 			$medialib=MediaLibrary::instance();
@@ -337,31 +338,31 @@ class Plugin extends PluginBase
 			// 'watermark' => function($path=false, $pasta_interna=false){},
 			'marcaDagua' => function($path=false, $pasta_interna=false){
 				//utilizar: resize|marcaDagua
-				$settings=Settings::instance();
-				if(!strpos("[".$path."]", "storage/app/uploads/") || !$settings->enabled_marca || !$settings->imagem_marca->path) return $path;
-				$copy=trim(str_replace(' /storage', ' storage', ' '.$path));
-				$infos=pathinfo($copy);
-				$destinationPath=str_replace(url('/').'/', '', $infos['dirname'].'/'.Str::slug($settings->imagem_marca->file_name));
+				// $settings=Settings::instance();
+				$settings=Functions3::getSettings();
+				if(!$settings->enabled_marca || !$settings->imagem_marca->path) return $path;
 
-				if(file_exists($destinationPath.'/'.$infos['basename'])) return $destinationPath.'/'.$infos['basename'];
-				if (
-					$destinationPath && 
-					!FileHelper::isDirectory($destinationPath) &&
-					!FileHelper::makeDirectory($destinationPath, 0777, true, true) &&
-					!FileHelper::isDirectory($destinationPath)
-				) {
-					trigger_error(error_get_last(), E_USER_WARNING);
-				}
-				if(FileHelper::copy($copy, $destinationPath.'/'.$infos['basename'])){
-					$path=$destinationPath.'/'.$infos['basename'];
-					$image=new OtimizarImage();
-					$path=$image->marca_dagua($path);
-				}
+				$infos=pathinfo($path);
+				$destinationPath=str_replace([url('/').'/',url('/')], ['',''], $infos['dirname'].'/'.Str::slug($settings->imagem_marca->file_name));
+
+				if(!@filemtime($destinationPath.'/'.$infos['basename'])){
+					if (
+						$destinationPath && 
+						!FileHelper::isDirectory($destinationPath) &&
+						!FileHelper::makeDirectory($destinationPath, 0777, true, true) &&
+						!FileHelper::isDirectory($destinationPath)
+					) {
+						return $path;
+						// trigger_error(error_get_last(), E_USER_WARNING);
+					}
+					$copy=str_replace(url('/').'/', '', $path);
+					if(FileHelper::copy($copy, $destinationPath.'/'.$infos['basename'])){
+						$path=$destinationPath.'/'.$infos['basename'];
+						$image=new OtimizarImage();
+						$path=url($image->marca_dagua($path));
+					}
+				}else $path=url($destinationPath.'/'.$infos['basename']);
 				return $path;
-
-
-				// return $settings_upload->imagem_marca->path;
-				// return $settings_upload->posicao_horizonal.$settings_upload->posicao_vertical.$settings_upload->opacity_marca.$settings_upload->proporcao_marca.$settings_upload->espacamento_marca;
 			},
 			'flip_image' => function($path, $horizontal=false, $vertical=false){
 				return $path;
@@ -376,7 +377,7 @@ class Plugin extends PluginBase
 					if(!file_exists($file_path)) return $file_path;
 				}
 				// $infos=pathinfo($file_path);
-				$settings=$this->getSettings();
+				$settings=Functions3::getSettings();
 				// if(isset($infos['extension']) && (($infos['extension'] == 'webp' && !$settings->converter_webp) || $infos['extension'] == 'svg')){
 				// if(isset($infos['extension']) && ($infos['extension'] == 'svg')){
 				if(strpos("[".$file_path." ]", ".svg ")){

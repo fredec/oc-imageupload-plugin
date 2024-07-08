@@ -1,6 +1,7 @@
 <?php namespace Diveramkt\Uploads\Classes;
 
 use File as FileHelper;
+use Diveramkt\Uploads\Models\Settings;
 use October\Rain\Network\Http;
 use Exception;
 use Storage;
@@ -19,6 +20,12 @@ class Functions3
 		'pdf'  => 'application/pdf',
 		'svg'  => 'image/svg+xml',
 	];
+
+	public static $getSettingsCache=false;
+	public static function getSettings(){
+		if(!Self::$getSettingsCache) Self::$getSettingsCache = Settings::instance();
+		return Self::$getSettingsCache;
+	}
 
 	public function fromUrl($url, $filename = null)
 	{
