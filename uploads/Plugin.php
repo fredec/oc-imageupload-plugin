@@ -224,7 +224,7 @@ class Plugin extends PluginBase
 		// //////////////////// OTIMIZANDO IMAGENS NO MEDIA
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
 			if($this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')) != $filePath){
-				rename('storage/app/'.$filePath, 'storage/app/'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
+				rename('storage/app/media/'.$filePath, 'storage/app/media/'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
 				$filePath=$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8'));
 			}
 			$info=pathinfo($filePath);
