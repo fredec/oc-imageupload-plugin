@@ -224,7 +224,10 @@ class Plugin extends PluginBase
 		// //////////////////// OTIMIZANDO IMAGENS NO MEDIA
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
 			if($this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')) != $filePath){
-				rename('storage/app/media/'.$filePath, 'storage/app/media/'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
+				// $string='/media';
+				// if(strpos("[".$string."]", "$filePath")) rename('storage/app'.$filePath, 'storage/app'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
+				// else rename('storage/app/media/'.$filePath, 'storage/app/media/'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
+				rename('storage/app'.$filePath, 'storage/app'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
 				$filePath=$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8'));
 			}
 			$info=pathinfo($filePath);
@@ -310,124 +313,124 @@ class Plugin extends PluginBase
 		});
 		// //////////////////// OTIMIZANDO IMAGENS NO MEDIA
 
-	}
+}
 
 // public $s3=null;
-	public function isS3(){
-		if(config('cms.storage.uploads.disk') != 'local') return true;
+public function isS3(){
+	if(config('cms.storage.uploads.disk') != 'local') return true;
+	else return false;
+}
+
+public function checkFile($path=false){
+	if(!$path) return;
+	if(config('cms.storage.uploads.disk') == 's3'){
+		$response = Http::get($path);
+		if($response->code == 200) return true;
 		else return false;
-	}
+	}elseif (is_file($path)) return true;
 
-	public function checkFile($path=false){
-		if(!$path) return;
-		if(config('cms.storage.uploads.disk') == 's3'){
-			$response = Http::get($path);
-			if($response->code == 200) return true;
-			else return false;
-		}elseif (is_file($path)) return true;
+	return false;
+}
 
-		return false;
-	}
+private function getPhpFunctions()
+{
+	return [
 
-	private function getPhpFunctions()
-	{
-		return [
-
-			'copyname' => function($path=false, $nome=false){
-				return $path;
-			},
+		'copyname' => function($path=false, $nome=false){
+			return $path;
+		},
 			// 'watermark' => function($path=false, $pasta_interna=false){},
-			'marcaDagua' => function($path=false, $pasta_interna=false){
+		'marcaDagua' => function($path=false, $pasta_interna=false){
 				//utilizar: resize|marcaDagua
 				// $settings=Settings::instance();
-				$settings=Functions3::getSettings();
-				if(!$settings->enabled_marca || !$settings->imagem_marca->path) return $path;
+			$settings=Functions3::getSettings();
+			if(!$settings->enabled_marca || !$settings->imagem_marca->path) return $path;
 
-				$infos=pathinfo($path);
-				$destinationPath=str_replace([url('/').'/',url('/')], ['',''], $infos['dirname'].'/'.Str::slug($settings->imagem_marca->file_name));
+			$infos=pathinfo($path);
+			$destinationPath=str_replace([url('/').'/',url('/')], ['',''], $infos['dirname'].'/'.Str::slug($settings->imagem_marca->file_name));
 
-				if(!@filemtime($destinationPath.'/'.$infos['basename'])){
-					if (
-						$destinationPath && 
-						!FileHelper::isDirectory($destinationPath) &&
-						!FileHelper::makeDirectory($destinationPath, 0777, true, true) &&
-						!FileHelper::isDirectory($destinationPath)
-					) {
-						return $path;
+			if(!@filemtime($destinationPath.'/'.$infos['basename'])){
+				if (
+					$destinationPath && 
+					!FileHelper::isDirectory($destinationPath) &&
+					!FileHelper::makeDirectory($destinationPath, 0777, true, true) &&
+					!FileHelper::isDirectory($destinationPath)
+				) {
+					return $path;
 						// trigger_error(error_get_last(), E_USER_WARNING);
-					}
-					$copy=str_replace(url('/').'/', '', $path);
-					if(FileHelper::copy($copy, $destinationPath.'/'.$infos['basename'])){
-						$path=$destinationPath.'/'.$infos['basename'];
-						$image=new OtimizarImage();
-						$path=url($image->marca_dagua($path));
-					}
-				}else $path=url($destinationPath.'/'.$infos['basename']);
-				return $path;
-			},
-			'flip_image' => function($path, $horizontal=false, $vertical=false){
-				return $path;
-				$path_new=explode('/storage/', $path); $http=$path_new[0]; $path_new=end($path_new); $path_new='storage/'.$path_new;
-				$image=new OtimizarImage();
-				$path_new=$image->flip($path_new, $horizontal, $vertical);
-				return $http.'/'.$path_new;
-			},
-			'resize' => function($file_path, $width = false, $height = false, $options = []) {
-				$file_path=trim(str_replace(' /', '', ' '.$file_path));
+				}
+				$copy=str_replace(url('/').'/', '', $path);
+				if(FileHelper::copy($copy, $destinationPath.'/'.$infos['basename'])){
+					$path=$destinationPath.'/'.$infos['basename'];
+					$image=new OtimizarImage();
+					$path=url($image->marca_dagua($path));
+				}
+			}else $path=url($destinationPath.'/'.$infos['basename']);
+			return $path;
+		},
+		'flip_image' => function($path, $horizontal=false, $vertical=false){
+			return $path;
+			$path_new=explode('/storage/', $path); $http=$path_new[0]; $path_new=end($path_new); $path_new='storage/'.$path_new;
+			$image=new OtimizarImage();
+			$path_new=$image->flip($path_new, $horizontal, $vertical);
+			return $http.'/'.$path_new;
+		},
+		'resize' => function($file_path, $width = false, $height = false, $options = []) {
+			$file_path=trim(str_replace(' /', '', ' '.$file_path));
 				// if(!strpos("[".$file_path."]", url('/'))){
 				// 	if(!file_exists($file_path)) return $file_path;
 				// }
 				// $infos=pathinfo($file_path);
-				$settings=Functions3::getSettings();
+			$settings=Functions3::getSettings();
 				// if(isset($infos['extension']) && (($infos['extension'] == 'webp' && !$settings->converter_webp) || $infos['extension'] == 'svg')){
 				// if(isset($infos['extension']) && ($infos['extension'] == 'svg')){
-				if(strpos("[".$file_path." ]", ".svg ")){
-					if(!strpos("[".url('/')."]",$file_path)) return url($file_path);
-					else return $file_path;
-				}
-				if(!$this->image_resize){
-					$this->image_resize=new \Diveramkt\Uploads\Classes\Image($file_path);
-				}else $this->image_resize->setFilepath($file_path);
+			if(strpos("[".$file_path." ]", ".svg ")){
+				if(!strpos("[".url('/')."]",$file_path)) return url($file_path);
+				else return $file_path;
+			}
+			if(!$this->image_resize){
+				$this->image_resize=new \Diveramkt\Uploads\Classes\Image($file_path);
+			}else $this->image_resize->setFilepath($file_path);
 
-				return $this->image_resize->resize($width, $height, $options);
-			},
-		];
+			return $this->image_resize->resize($width, $height, $options);
+		},
+	];
+}
+public $image_resize=null;
+
+public function gerar_pastas_image($path, $path_new){
+
+	$exp=explode('/', $path_new);
+	$cam='';
+	foreach ($exp as $key => $value) {
+		if($value == end($exp)) continue;
+		$cam.=$value.'/';
+		if(!file_exists($cam)) mkdir($cam, 0777);
 	}
-	public $image_resize=null;
 
-	public function gerar_pastas_image($path, $path_new){
-
-		$exp=explode('/', $path_new);
-		$cam='';
-		foreach ($exp as $key => $value) {
-			if($value == end($exp)) continue;
-			$cam.=$value.'/';
-			if(!file_exists($cam)) mkdir($cam, 0777);
-		}
-
-		return $path_new;
+	return $path_new;
 		// if(!file_exists($path_new)) copy($path, $path_new);
 		// return $http.'/'.$path_new;
-	}
+}
 
-	public function delTree($dir=false) { 
-		$files = array_diff(scandir($dir), array('.','..')); 
-		foreach ($files as $file) { 
-			(is_dir("$dir/$file")) ? $this->delTree("$dir/$file") : unlink("$dir/$file"); 
-		} 
-		return rmdir($dir); 
-	}
+public function delTree($dir=false) { 
+	$files = array_diff(scandir($dir), array('.','..')); 
+	foreach ($files as $file) { 
+		(is_dir("$dir/$file")) ? $this->delTree("$dir/$file") : unlink("$dir/$file"); 
+	} 
+	return rmdir($dir); 
+}
 
-	public function registerMarkupTags()
-	{
-		$filters = [];
+public function registerMarkupTags()
+{
+	$filters = [];
         // add PHP functions
-		$filters += $this->getPhpFunctions();
+	$filters += $this->getPhpFunctions();
 
-		return [
-			'filters'   => $filters,
-		];
-	}
+	return [
+		'filters'   => $filters,
+	];
+}
 
 	// private function addPositionedFormFields($form, $config, $where = null)
 	// {
