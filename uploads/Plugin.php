@@ -349,6 +349,7 @@ private function getPhpFunctions()
 			$infos=pathinfo($path);
 			$destinationPath=str_replace([url('/').'/',url('/')], ['',''], $infos['dirname'].'/'.Str::slug($settings->imagem_marca->file_name));
 
+			// || !filesize($destinationPath.'/'.$infos['basename'])
 			if(!@filemtime($destinationPath.'/'.$infos['basename'])){
 				if (
 					$destinationPath && 
@@ -359,11 +360,18 @@ private function getPhpFunctions()
 					return $path;
 						// trigger_error(error_get_last(), E_USER_WARNING);
 				}
-				$copy=str_replace(url('/').'/', '', $path);
-				if(FileHelper::copy($copy, $destinationPath.'/'.$infos['basename'])){
-					$path=$destinationPath.'/'.$infos['basename'];
-					$image=new OtimizarImage();
-					$path=url($image->marca_dagua($path));
+				$stop=1;
+				for ($i=0; $i < $stop; $i++) { 
+
+					$copy=str_replace(url('/').'/', '', $path);
+					if(FileHelper::copy($copy, $destinationPath.'/'.$infos['basename'])){
+						$path_new=$destinationPath.'/'.$infos['basename'];
+						$image=new OtimizarImage();
+						$path_new=url($image->marca_dagua($path_new));
+					}
+
+					if(!filesize($destinationPath.'/'.$infos['basename'])) $stop++;
+					else $path=$path_new;
 				}
 			}else $path=url($destinationPath.'/'.$infos['basename']);
 			return $path;
