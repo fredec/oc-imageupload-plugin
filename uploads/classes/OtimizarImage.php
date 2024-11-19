@@ -248,41 +248,24 @@ class OtimizarImage {
 
 			$opacity_marca=50; if(isset($this->settings->opacity_marca) && $this->settings->opacity_marca > 0 && $this->settings->opacity_marca < 101) $opacity_marca=$this->settings->opacity_marca;
 
-			$proporcao_marca=50; if(isset($this->settings->proporcao_marca) && $this->settings->proporcao_marca > 0 && $this->settings->proporcao_marca < 101) $proporcao_marca=$this->settings->proporcao_marca;
+			$proporcao_marca=50; if(isset($this->settings->proporcao_marca) && $this->settings->proporcao_marca >= 0 && $this->settings->proporcao_marca < 101) $proporcao_marca=$this->settings->proporcao_marca;
 
-			$espacamento_marca=20; if(isset($this->settings->espacamento_marca) && $this->settings->espacamento_marca > 0 && $this->settings->espacamento_marca < 101) $espacamento_marca=$this->settings->espacamento_marca;
+			$espacamento_marca=20; if(isset($this->settings->espacamento_marca) && $this->settings->espacamento_marca >= 0 && $this->settings->espacamento_marca < 101) $espacamento_marca=$this->settings->espacamento_marca;
 
 
 			$size_marca = getimagesize($marca);
 
 			$width=($size[0]*$proporcao_marca)/100;
-			$height=($width*$size[1])/$size[0];
+			if($width>$size_marca[0]) $width=$size_marca[0];
+			$height=($size_marca[1]*$width)/$size_marca[0];
 
-			if($size[0] > $size[1]){
-				$height=($size[1]*$proporcao_marca)/100;
-				// $width=($height*$size[0])/$size[1];
-				$width=($height*$size_marca[0])/$size_marca[1];
-			}else{
-				$width=($size[0]*$proporcao_marca)/100;
-				// $height=($width*$size[1])/$size[0];
-				$height=($width*$size_marca[1])/$size_marca[0];
-			}
-			// if($width > $size_marca[0] || $height > $size_marca[1]){
-			// 	$width=$size_marca[0];
-			// 	$height=$size_marca[1];
-			// }
-
-
-			$x=0; $y=0;
+			$x=$espacamento_marca; $y=$espacamento_marca;
 			if($posicao_horizonal == 'center') $x=($size[0]/2)-($width/2);
-			elseif($posicao_horizonal == 'left') $x=$espacamento_marca;
-			elseif($posicao_horizonal == 'right') $x=$size[0]-$width-$espacamento_marca;
+			elseif($posicao_horizonal == 'right') $x=($size[0]-$width)-$espacamento_marca;
 
 			if($posicao_vertical == 'center') $y=($size[1]/2)-($height/2);
-			elseif($posicao_vertical == 'top') $y=$espacamento_marca;
-			elseif($posicao_vertical == 'bottom') $y=$size[1]-$height-$espacamento_marca;
+			elseif($posicao_vertical == 'bottom') $y=($size[1]-$height)-$espacamento_marca;
 
-			// echo '<br/>';
 			$imagem=new Image($image);
 			$image_marca=Image::open($marca)->cropResize($width, $height)->opacity($opacity_marca);
 			$imagem->merge($image_marca,$x,$y);
