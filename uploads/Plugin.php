@@ -223,19 +223,22 @@ class Plugin extends PluginBase
 
 		// //////////////////// OTIMIZANDO IMAGENS NO MEDIA
 		Event::listen( 'media.file.upload', function ( $widget, $filePath, $uploadedFile ) {
-			if($this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')) != $filePath){
+			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
+			if(strpos("[".$filePath."]", "uploaded-files/")){
+				// if($info['basename'] != str::slug($info['basename'])) return $filePath;
+			}else{
+
+			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
+				if($this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')) != $filePath){
 				// $string='/media';
 				// if(strpos("[".$string."]", "$filePath")) rename('storage/app'.$filePath, 'storage/app'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
 				// else rename('storage/app/media/'.$filePath, 'storage/app/media/'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
-				rename('storage/app'.$filePath, 'storage/app'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
-				$filePath=$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8'));
+					rename('storage/app'.$filePath, 'storage/app'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
+					$filePath=$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8'));
+				}
 			}
+
 			$info=pathinfo($filePath);
-			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
-			if(strpos("[".$filePath."]", "uploaded-files/")){
-				if($info['basename'] != str::slug($info['basename'])) return;
-			}
-			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
 
 			$ext=$info['extension'];
 			$settings=Functions3::getSettings();
