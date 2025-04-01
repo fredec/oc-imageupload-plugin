@@ -97,7 +97,7 @@ class OtimizarImage {
 		$infos=pathinfo($path);
 
 		$ext=$infos['extension'];
-		if($local != 'media'){
+		if(!strpos("[".$path."]", "uploaded-files/")){
 			if($this->config['converter_ext']) $ext=$this->config['converter_ext'];
 			if($ext == 'jpeg') $ext='jpg';
 		}
