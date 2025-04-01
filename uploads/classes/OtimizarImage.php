@@ -97,8 +97,10 @@ class OtimizarImage {
 		$infos=pathinfo($path);
 
 		$ext=$infos['extension'];
-		if($this->config['converter_ext']) $ext=$this->config['converter_ext'];
-		if($ext == 'jpeg') $ext='jpg';
+		if($local != 'media'){
+			if($this->config['converter_ext']) $ext=$this->config['converter_ext'];
+			if($ext == 'jpeg') $ext='jpg';
+		}
 
 		$new=$infos['dirname'].'/'.$infos['filename'].'.'.$ext;
 		$new=implode('/',array_filter(explode('/', $new)));
