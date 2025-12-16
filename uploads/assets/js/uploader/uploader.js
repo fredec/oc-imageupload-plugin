@@ -80,6 +80,7 @@
             previewsContainer: this.$filesContainer.get(0),
             // maxFiles: !this.options.isMulti ? 1 : null,
             maxFiles: this.options.limit ? this.options.limit : null,
+            capture: this.options.capture ? this.options.capture : null,
             dictMaxFilesExceeded: 'Vocè pode carregar no máximo '+this.options.limit+' arquivos',
             headers: {},
             dictInvalidFileType: 'Você não pode carregar este tipo de arquivo',

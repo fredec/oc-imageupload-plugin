@@ -35,6 +35,7 @@ use System\Classes\PluginManager;
 use Http;
 use str;
 use Config;
+use October\Rain\Exception\ApplicationException;
 
 // use Arcane\Seo\Models\Settings SettingsArcane;
 
@@ -152,7 +153,6 @@ class Plugin extends PluginBase
 
 			if(isset($permissoes['readOnly_media']) && $permissoes['readOnly_media'] == 1) $widget->readOnly=true;
 			$widget->addViewPath(plugins_path().'/diveramkt/uploads/backend/widgets/mediamanager/partials/');
-
 		});
 		// //////////////GERENCIAMENTO NAS IMAGENS E ARQUIVOS NO MEDIA
 
@@ -194,8 +194,11 @@ class Plugin extends PluginBase
 					$infodb=pathinfo($model->file_name);
 					$ext=$infodb['extension'];
 
-					$model->disk_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->disk_name);
-					$model->file_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->file_name);
+					// $model->disk_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->disk_name);
+					// $model->file_name=str_replace('.'.$ext,'.'.$retorno['extension'], $model->file_name);
+
+					$model->disk_name=str_replace(['.'.$ext,'.'.mb_strtolower($ext, 'UTF-8')],['.'.$retorno['extension'],'.'.$retorno['extension']], $model->disk_name);
+					$model->file_name=str_replace(['.'.$ext,'.'.mb_strtolower($ext, 'UTF-8')],['.'.$retorno['extension'],'.'.$retorno['extension']], $model->file_name);
 
 					if(isset($retorno['mime_type'])) $model->content_type=$retorno['mime_type'];
 
@@ -228,15 +231,16 @@ class Plugin extends PluginBase
 				// if($info['basename'] != str::slug($info['basename'])) return $filePath;
 			}else{
 
+			// throw new ApplicationException($filePath);
+
 			// //////////////UPLOAD DE IMAGENS NO CAMPO DE TEXTO
-				if($this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')) != $filePath){
-				// $string='/media';
-				// if(strpos("[".$string."]", "$filePath")) rename('storage/app'.$filePath, 'storage/app'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
-				// else rename('storage/app/media/'.$filePath, 'storage/app/media/'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
-					rename('storage/app'.$filePath, 'storage/app'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
-					$filePath=$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8'));
-				}
+				// if($this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')) != $filePath){
+				// 	rename('storage/app/media'.$filePath, 'storage/app/media'.$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8')));
+				// 	$filePath=$this->removerAcentos(mb_strtolower(str_replace('_','-',$filePath), 'UTF-8'));
+				// }
 			}
+
+			// throw new ApplicationException('Teste 1');
 
 			$info=pathinfo($filePath);
 
@@ -244,24 +248,26 @@ class Plugin extends PluginBase
 			$settings=Functions3::getSettings();
 			if((isset($settings['disabled']) and $settings['disabled']) || !$this->veri_extension_image($ext)) return;
 
-			$medialib=MediaLibrary::instance();
-			if(Str::slug($info['filename']) != $info['filename']){
-				$stop=1;
-				$check='';
-				for ($i=0; $i < $stop; $i++) {
-					if($i) $newPath=$info['dirname'].'/'.Str::slug($info['filename']).'-'.$i.'.'.$info['extension'];
-					else $newPath=$info['dirname'].'/'.Str::slug($info['filename']).'.'.$info['extension'];
-					$check=str_replace(['.jpeg',' /',' '], ['.jpg','',''], ' '.$medialib->url($newPath));
-					if(file_exists($check)) $stop++;
-				}
+			// $medialib=MediaLibrary::instance();
+			// if(Str::slug($info['filename']) != $info['filename'] && !strpos("[".$filePath."]", "uploaded-files/")){
+			// 	$stop=1;
+			// 	$check='';
+			// 	for ($i=0; $i < $stop; $i++) {
+			// 		if($i) $newPath=$info['dirname'].'/'.Str::slug($info['filename']).'-'.$i.'.'.$info['extension'];
+			// 		else $newPath=$info['dirname'].'/'.Str::slug($info['filename']).'.'.$info['extension'];
+			// 		$check=str_replace(['.jpeg',' /',' '], ['.jpg','',''], ' '.$medialib->url($newPath));
+			// 		if(file_exists($check)) $stop++;
+			// 	}
 
-				$medialib->moveFile( $filePath, $newPath );
-				$filePath=$newPath;
-			}
+			// 	$medialib->moveFile( $filePath, $newPath );
+			// 	$filePath=$newPath;
+			// }
 
 			// $url=$filePath=$medialib->url($filePath);
 			if(!strpos("[".$filePath."]", "/storage/app")) $url=$filePath='/storage/app'.$filePath;
 			// else $url=$filePath='/storage/app'.$filePath;
+
+			// throw new ApplicationException($url.' - '.$filePath);
 			
 			if(!strpos("[".$url."]", url('/'))) $url=url($url);
 			$realPath = empty(trim($uploadedFile->getRealPath()))

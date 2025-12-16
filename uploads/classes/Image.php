@@ -190,6 +190,24 @@ class Image
             touch($this->getCachedImagePath(), filemtime($this->filePath));
             $this->deleteTempFile();
             // touch($this->getCachedImagePath(), strtotime(date('Y-m-d H:i:s')));
+
+            // /////////////ALTERNATIVA QUANDO ALGUMAS IMAGENS SÃO GERADAS CORROMPIDAS
+            $thumb=str_replace('http://localhost/','storage/app/',$thumb);
+            if(!filesize($thumb)){
+                unlink($thumb);
+
+                $file = new Self($this->filePath);
+                $file->s3=false;
+                $image=$file->resize($width+1, $height+1, $this->options);
+
+                $image_old=explode('storage/app', $image);
+                $image_old='storage/app'.end($image_old);
+
+                rename($image_old, $thumb);
+                return $image;
+            }
+            // /////////////ALTERNATIVA QUANDO ALGUMAS IMAGENS SÃO GERADAS CORROMPIDAS
+            
         }else{
             // Cache::put($this->cacheS3(), 1, 999999999999999999);
             Session::put($this->cacheS3(), 1);
