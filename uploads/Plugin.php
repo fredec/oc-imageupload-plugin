@@ -264,6 +264,7 @@ class Plugin extends PluginBase
 			// }
 
 			// $url=$filePath=$medialib->url($filePath);
+			if(!strpos("[".$filePath."]", "/media")) $url=$filePath='/media'.$filePath;
 			if(!strpos("[".$filePath."]", "/storage/app")) $url=$filePath='/storage/app'.$filePath;
 			// else $url=$filePath='/storage/app'.$filePath;
 
